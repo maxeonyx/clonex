@@ -1,7 +1,10 @@
 # CloneX semantic model — design search and selection
 
-Status: **selected model, confidence moderate-high for the core, low for
-the client/transaction surface.** Inputs: `episodes.md` (lead pass, ~130
+Status: **selected model, implemented as a vertical slice; confidence
+moderate-high for the core (tested laws, real-umbrella trial), low for the
+client/transaction surface.** §8 records how implementation and two
+independent attacks changed §3 after it was first written — read it before
+trusting any sentence above it. Inputs: `episodes.md` (lead pass, ~130
 episodes), `research/blind-episodes.md` (134 episodes by an agent that never
 saw the model), `research/algebra-attack.md` (+ executable search in
 `research/algebra/`), `research/alternative-ontologies.md`,
@@ -260,10 +263,100 @@ Engineering (future agents decide by experiment):
   `base.tree` with the subpath replaced. Designed for, not yet built.
 - Server opportunities: a change-id index across hosted repos, event-aware
   PR grouping, automatic adoption bots. None is required by the model.
-- Security: `Clonex-Base` claims are verifiable (the sha must be reachable
+- Security: `Clonex-Adopt` (originally `Clonex-Base`) claims are verifiable (the sha must be reachable
   and the tree must match), so they can't be forged into lies about
   content. `Clonex-Change` is unverified display data. Signing derived
   commits happens at publish time and conflicts with L3; the resolution
   (record the signed object as the base after adoption) follows from L1.
 
 Owner value judgments (asked in the handoff): see `questions.md`.
+
+
+## 8. What implementation and review changed (authoritative over §3–§6)
+
+Sources: `research/concept-removal.md`, `research/anchor-attack.md` (19
+scenarios over real Git, attacking §3 as first written), and friction met
+while building (`src/`, `tests/`).
+
+**Changed rules (as implemented):**
+- **The lens is total.** `get_P` does not consult the manifest; any path
+  of any commit has a derived history. Gating on declarations was *wrong*
+  (it made extraction a special mode and made pre-declaration history
+  vanish). The manifest now only drives sync/publish.
+- **Adoption claim renamed** `Clonex-Adopt: <path> <sha>`; valid only if
+  `sha` is a parent. Adoptions are *path-relative*: an adoption at `A`
+  answers queries for `A/Q` through the adopted commit's own lens
+  (`get_{A/Q}(c) = get_Q(adopted)`), and adoptions below a lens path are
+  carried into the derived commit re-rooted (with the adopted commit as a
+  parent). This is what makes nesting (L5) hold; found by a failing test.
+- **Only the composition's own side is walked.** Adopted parents never feed
+  candidates except through the rule above (attack A1: bases leaking from
+  nested compositions, and a trust hole via outsider trailers).
+- **`name` and the custom remote override are gone.** Path is the key;
+  mirrors/local paths are Git's `url.<base>.insteadOf`.
+- **No SHA-derived change ids.** A change id derived from a commit SHA
+  changes on every plain rebase, which changes every derived commit (breaks
+  L4). Change identity exists only when stable: jj's `change-id` header on
+  the composition commit, carried as `Clonex-Change` on derived commits.
+- **Adoption reapplies only the composition's own work** (attack A4, three
+  real failures): own work = derived commits not reachable from anything
+  adopted. None → the occurrence becomes the new component state (an
+  upstream rewrite such as the ledger repair no longer conflicts). For each
+  own commit whose change exists upstream (same change id, or identical
+  patch via `git cherry`), apply only the difference from that version:
+  a squash-landed-then-reverted change stays reverted; an amend after a
+  reviewer's commit applies without conflict. Otherwise Git's 3-way merge.
+- **Publication replaces a branch only if its tip is what this repository
+  last published there** (`refs/clonex/published/…`, a lease); anyone
+  else's commits (bot, reviewer, GitHub) must be adopted first.
+- **Frozen occurrences are published only when named.**
+- **Component tips live under `refs/remotes/clonex/<path>/<branch>`**, so jj
+  imports them as untracked remote bookmarks, which jj makes immutable by
+  default: `jj rebase -b` can no longer rewrite adopted component commits
+  into composition-shaped commits (attack A6; verified with jj 0.44).
+
+**Restated claim (attack item 9):** change identity is not needed for
+*content* correctness (no silent loss, no wrong content) *except* where
+Git itself would be wrong — re-merging a squash-landed-then-reverted change
+— and there `git cherry` patch-id detection covers the single-squash case
+without metadata. Identity *is* needed for merge-base selection after
+rewrites (clean amends over published versions) and for detecting stale
+foreign commits.
+
+**Known open defects and gaps (with the attack's minimal cases):**
+- *Stale adoptions* (A5, K14 with a red-commit edit after the bot ran): jj
+  rebases the adoption merge onto the edited change and keeps the bot
+  commit, whose ledger now describes a test state it never saw. Needed:
+  detect adopted commits built on a superseded version of one of our
+  changes (change id), report them, and offer "drop and republish" so the
+  bot reruns. Not built.
+- *Sync placement* (A9): `sync` adopts at HEAD, so green work made before
+  syncing becomes a sibling of the bot commit (content right, shape wrong
+  for ratchet-style repos). Needed: adopt at the last published commit and
+  rebase unpublished work above it (jj `rebase -s`). Not built.
+- *Occurrence moves* (A3): a `git mv` of an occurrence starts a new root.
+  Planned: `clonex mv` that re-adopts the old path's component commit at
+  the new path (no new rule, one existing mechanism).
+- *Plain-Git hazards* (A7): `git rebase` of a composition branch that
+  adopted unmerged component commits replays them at the root — **also with
+  `--rebase-merges`**, silently (my §6 claim that it was safe was false).
+  Squash-merging a composition PR on GitHub drops adoption parents; the
+  claims then fail validation and derived history "jumps". Publish guards
+  (refuse derived commits that revert upstream work or jump) are designed,
+  not built.
+- *Sub-path occurrences* (K17) are **unsupported**: an occurrence must hold a
+  whole component tree; publishing a subdirectory-only history would delete
+  the rest of the component.
+- *Multi-base occurrences* publish as component merges; conflict
+  presentation during adoption is plain Git conflict paths (first-class
+  conflicts are jj's job once the adoption commit is made).
+
+**Verified (tests):** `tests/episodes.rs` replays 17 episodes (A2, A3, A5,
+B1, B2, B3, C2, C3, C12, D2, D6, D12, F6, F7, G6, K14, L5); `tests/laws.rs`
+property-tests tree law, PutGet, no-lost-outsider-commits, append-only main,
+convergence and cross-clone determinism over generated histories, and was
+mutation-checked (removing the round-trip rule or using the committer
+identity makes it fail). A trial on a copy of the real agent-tools umbrella
+converted all seven submodules, published one cross-cutting commit as one
+ordinary commit per tool, detected the real 12-commit dotsync pin lag, and
+merged dotsync main into the feature branch by `sync`.
