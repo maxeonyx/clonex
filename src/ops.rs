@@ -367,6 +367,11 @@ pub fn publish(git: &Git, req: PublishRequest) -> Result<Vec<PublishResult>> {
     };
     let mut results = Vec::new();
     for (path, occ) in selected(&manifest, &req.only)? {
+        // A frozen occurrence (pinned fixture, vendored copy) is published
+        // only when asked for by name: its line is not the branch's line.
+        if req.only.is_empty() && occ.follow.is_none() {
+            continue;
+        }
         let Some(derived) = comp.lens(path).get(&head)? else { continue };
         let outcome = publish_one(git, path, occ, &derived, &branch, req.dry_run)?;
         results.push(PublishResult { path: path.clone(), branch: branch.clone(), outcome });
