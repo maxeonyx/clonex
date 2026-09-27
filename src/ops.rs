@@ -8,9 +8,12 @@ use anyhow::{bail, Context, Result};
 use serde::Serialize;
 
 /// Remote-tracking ref for an occurrence's branch. Keyed by path, since the
-/// path is the occurrence's only identity inside a composition.
+/// path is the occurrence's only identity inside a composition. It lives
+/// under `refs/remotes/` so jj imports it as an untracked remote bookmark
+/// (`tools/trunc/main@clonex`), which jj treats as immutable: component
+/// commits can't be rewritten into composition-shaped commits by a jj rebase.
 fn remote_ref(path: &str, branch: &str) -> String {
-    format!("refs/clonex/remote/{path}/{branch}")
+    format!("refs/remotes/clonex/{path}/{branch}")
 }
 
 /// Last tip this repository itself pushed to an occurrence's branch.
