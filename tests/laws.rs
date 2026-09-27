@@ -148,16 +148,16 @@ fn run_case(ops: Vec<Op>) {
         check_state(&u);
     }
 
-    // Convergence: publish until nothing remains; afterwards nothing is ahead.
+    // Convergence: adopt, publish, repeat until stable (a concurrent
+    // outsider can't intervene here, so one or two rounds suffice).
     for _ in 0..3 {
-        let r = u.cx_json(&["publish"]);
-        if r[0]["outcome"] == "diverged" {
-            if !u.cx(&["sync"]).ok {
-                return; // content conflict: a human decision, not a law violation
-            }
-            continue;
+        if !u.cx(&["sync"]).ok {
+            return; // content conflict: a human decision, not a law violation
         }
-        break;
+        let r = u.cx_json(&["publish"]);
+        if r[0]["outcome"] != "diverged" {
+            break;
+        }
     }
     let st = u.cx_json(&["status"]);
     let tools = st.as_array().unwrap().iter().find(|o| o["path"] == "tools/t").unwrap().clone();

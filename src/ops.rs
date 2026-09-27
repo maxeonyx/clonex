@@ -232,6 +232,7 @@ pub fn sync(git: &Git, req: SyncRequest) -> Result<SyncReport> {
     let comp = Composition::new(git);
     let manifest = comp.manifest_at(&head)?;
     let mut adoptions = Vec::new();
+    let mut branches = std::collections::HashMap::new();
     for (path, occ) in selected(&manifest, &req.only)? {
         let branch = match (&req.branch, &occ.follow) {
             (Some(b), _) => b.clone(),
@@ -240,6 +241,7 @@ pub fn sync(git: &Git, req: SyncRequest) -> Result<SyncReport> {
             (None, None) => continue,
         };
         if let Some(tip) = fetch(git, path, occ, &branch)? {
+            branches.insert(path.clone(), branch.clone());
             adoptions.push(Adoption { path: path.clone(), commit: tip });
         }
     }
@@ -248,9 +250,12 @@ pub fn sync(git: &Git, req: SyncRequest) -> Result<SyncReport> {
     };
     let names: Vec<String> = claims
         .iter()
-        .map(|(p, s)| format!("{} {}", display_name(p), &s[..10]))
+        .map(|(p, s)| format!("{} {} ({})", display_name(p), branches[p], &s[..10]))
         .collect();
-    let msg = adoption_message(git, &comp, &head, &claims, &format!("Adopt {}", names.join(", ")))?;
+    // Worded as an ordinary upstream merge: when the composition holds
+    // unpublished work, this commit is also derived into the component's
+    // own history, where "Merge dotsync main (…)" reads naturally.
+    let msg = adoption_message(git, &comp, &head, &claims, &format!("Merge {}", names.join(", ")))?;
     let commit = advance_head(git, &tree, &parents, &msg)?;
     Ok(SyncReport { adopted: claims, commit: Some(commit) })
 }
@@ -382,13 +387,17 @@ pub fn publish(git: &Git, req: PublishRequest) -> Result<Vec<PublishResult>> {
 fn publish_one(git: &Git, path: &str, occ: &Occurrence, derived: &str, branch: &str, dry_run: bool) -> Result<PublishOutcome> {
     let Some(url) = occ.remote.clone() else { return Ok(PublishOutcome::NoRemote) };
     let tip = fetch(git, path, occ, branch)?;
-    // Nothing of ours to publish if the followed branch already contains it.
+    // A new branch starts from the followed branch: nothing of ours to
+    // publish if that already contains the derived commit, and only the
+    // commits beyond it count as ours.
+    let mut new_branch_base = None;
     if tip.is_none() {
         if let Some(f) = occ.follow.as_ref().filter(|f| f.as_str() != branch) {
             if let Some(ft) = fetch(git, path, occ, f)? {
                 if git.is_ancestor(derived, &ft)? {
                     return Ok(PublishOutcome::UpToDate);
                 }
+                new_branch_base = Some(ft);
             }
         }
     }
@@ -402,7 +411,10 @@ fn publish_one(git: &Git, path: &str, occ: &Occurrence, derived: &str, branch: &
         Some(t) if git.is_ancestor(t, derived)? => (count(git, &format!("{t}..{derived}"))?, false),
         Some(t) if ours_last.as_deref() == Some(t.as_str()) => (count(git, &format!("{t}..{derived}"))?, true),
         Some(t) => return Ok(PublishOutcome::Diverged { remote: t.clone(), local: derived.to_string() }),
-        None => (count(git, derived)?, false),
+        None => match &new_branch_base {
+            Some(base) => (count(git, &format!("{base}..{derived}"))?, false),
+            None => (count(git, derived)?, false),
+        },
     };
     if dry_run {
         return Ok(PublishOutcome::WouldPush { from: tip, to: derived.to_string(), commits, replaced });

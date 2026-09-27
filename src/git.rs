@@ -5,9 +5,9 @@
 use anyhow::{bail, Context, Result};
 use std::cell::RefCell;
 use std::collections::HashMap;
-use std::io::Write;
+use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
-use std::process::{Command, Stdio};
+use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
 
 pub type Oid = String;
 
@@ -52,7 +52,25 @@ pub struct TreeEntry {
 pub struct Git {
     dir: PathBuf,
     commits: RefCell<HashMap<Oid, Commit>>,
+    trees: RefCell<HashMap<Oid, Vec<TreeEntry>>>,
     ancestry: RefCell<HashMap<(Oid, Oid), bool>>,
+    batch: RefCell<Option<Batch>>,
+}
+
+/// One long-lived `git cat-file --batch` for object reads.
+struct Batch {
+    _child: Child,
+    stdin: ChildStdin,
+    stdout: BufReader<ChildStdout>,
+}
+
+impl Drop for Git {
+    fn drop(&mut self) {
+        if let Some(mut b) = self.batch.borrow_mut().take() {
+            drop(b.stdin);
+            let _ = b._child.wait();
+        }
+    }
 }
 
 pub enum MergeOutcome {
@@ -66,7 +84,9 @@ impl Git {
         let git = Git {
             dir,
             commits: RefCell::new(HashMap::new()),
+            trees: RefCell::new(HashMap::new()),
             ancestry: RefCell::new(HashMap::new()),
+            batch: RefCell::new(None),
         };
         git.run(&["rev-parse", "--git-dir"])
             .context("not inside a Git repository")?;
@@ -133,6 +153,40 @@ impl Git {
         ))
     }
 
+    /// Read a raw object through the persistent batch process.
+    fn read_object(&self, oid: &str) -> Result<Option<(String, Vec<u8>)>> {
+        let mut slot = self.batch.borrow_mut();
+        if slot.is_none() {
+            let mut child = self
+                .command(&["cat-file", "--batch"])
+                .stdin(Stdio::piped())
+                .stdout(Stdio::piped())
+                .stderr(Stdio::null())
+                .spawn()
+                .context("failed to start git cat-file")?;
+            let stdin = child.stdin.take().expect("piped");
+            let stdout = BufReader::new(child.stdout.take().expect("piped"));
+            *slot = Some(Batch { _child: child, stdin, stdout });
+        }
+        let b = slot.as_mut().expect("started");
+        writeln!(b.stdin, "{oid}")?;
+        b.stdin.flush()?;
+        let mut header = String::new();
+        b.stdout.read_line(&mut header)?;
+        let header = header.trim_end();
+        if header.ends_with(" missing") || header.ends_with(" ambiguous") {
+            return Ok(None);
+        }
+        let mut parts = header.split(' ');
+        let _oid = parts.next();
+        let kind = parts.next().context("bad cat-file header")?.to_string();
+        let size: usize = parts.next().context("bad cat-file header")?.parse()?;
+        let mut data = vec![0u8; size + 1]; // + trailing newline
+        b.stdout.read_exact(&mut data)?;
+        data.pop();
+        Ok(Some((kind, data)))
+    }
+
     pub fn rev_parse(&self, rev: &str) -> Result<Oid> {
         let out = self
             .run(&["rev-parse", "--verify", "--quiet", &format!("{rev}^{{commit}}")])
@@ -148,27 +202,41 @@ impl Git {
         if let Some(c) = self.commits.borrow().get(oid) {
             return Ok(c.clone());
         }
-        let raw = self
-            .run(&["cat-file", "commit", oid])
-            .with_context(|| format!("reading commit {oid}"))?;
+        let raw = match self.read_object(oid)? {
+            Some((kind, data)) if kind == "commit" => String::from_utf8_lossy(&data).into_owned(),
+            Some((kind, _)) => bail!("{oid} is a {kind}, not a commit"),
+            None => bail!("commit {oid} is not in this repository"),
+        };
         let c = parse_commit(oid, &raw)?;
         self.commits.borrow_mut().insert(oid.to_string(), c.clone());
         Ok(c)
     }
 
     pub fn ls_tree(&self, tree: &str) -> Result<Vec<TreeEntry>> {
-        let out = self.run(&["ls-tree", "-z", tree])?;
-        let mut entries = Vec::new();
-        for rec in out.split('\0').filter(|r| !r.is_empty()) {
-            let (meta, name) = rec.split_once('\t').context("bad ls-tree output")?;
-            let mut parts = meta.split(' ');
-            entries.push(TreeEntry {
-                mode: parts.next().unwrap_or_default().to_string(),
-                kind: parts.next().unwrap_or_default().to_string(),
-                oid: parts.next().unwrap_or_default().to_string(),
-                name: name.to_string(),
-            });
+        if let Some(t) = self.trees.borrow().get(tree) {
+            return Ok(t.clone());
         }
+        let data = match self.read_object(tree)? {
+            Some((kind, data)) if kind == "tree" => data,
+            _ => bail!("{tree} is not a tree"),
+        };
+        let mut entries = Vec::new();
+        let mut rest = &data[..];
+        while !rest.is_empty() {
+            let sp = rest.iter().position(|b| *b == b' ').context("bad tree")?;
+            let nul = rest.iter().position(|b| *b == 0).context("bad tree")?;
+            let mode = String::from_utf8_lossy(&rest[..sp]).into_owned();
+            let name = String::from_utf8_lossy(&rest[sp + 1..nul]).into_owned();
+            let oid: String = rest[nul + 1..nul + 21].iter().map(|b| format!("{b:02x}")).collect();
+            rest = &rest[nul + 21..];
+            let (mode, kind) = match mode.as_str() {
+                "40000" => ("040000".to_string(), "tree"),
+                "160000" => (mode, "commit"),
+                _ => (mode, "blob"),
+            };
+            entries.push(TreeEntry { mode, kind: kind.into(), oid, name });
+        }
+        self.trees.borrow_mut().insert(tree.to_string(), entries.clone());
         Ok(entries)
     }
 
@@ -202,7 +270,9 @@ impl Git {
 
     pub fn read_blob_at(&self, tree: &str, path: &str) -> Result<Option<String>> {
         match self.entry(tree, path)? {
-            Some(e) if e.kind == "blob" => Ok(Some(self.run(&["cat-file", "blob", &e.oid])?)),
+            Some(e) if e.kind == "blob" => Ok(self
+                .read_object(&e.oid)?
+                .map(|(_, data)| String::from_utf8_lossy(&data).into_owned())),
             _ => Ok(None),
         }
     }
