@@ -65,7 +65,12 @@ impl<'g> Composition<'g> {
     }
 
     pub fn lens(&'g self, path: &str) -> Lens<'g> {
-        Lens { comp: self, path: path.trim_matches('/').to_string(), memo: RefCell::new(HashMap::new()) }
+        Lens {
+            comp: self,
+            path: path.trim_matches('/').to_string(),
+            memo: RefCell::new(HashMap::new()),
+            adopted: RefCell::new(Vec::new()),
+        }
     }
 }
 
@@ -73,6 +78,9 @@ pub struct Lens<'g> {
     comp: &'g Composition<'g>,
     pub path: String,
     memo: RefCell<HashMap<Oid, Option<Oid>>>,
+    /// Component commits adopted (directly or through a nested adoption)
+    /// anywhere in the history walked so far.
+    adopted: RefCell<Vec<Oid>>,
 }
 
 /// Identity of the logical change a commit represents, when one exists that
@@ -135,6 +143,7 @@ impl<'g> Lens<'g> {
                 }
             }
         }
+        self.adopted.borrow_mut().extend(adopted.iter().cloned());
         // Round-trip law: an adoption with no remaining delta *is* the
         // adopted commit (same SHA, signature, statuses).
         if adopted.len() == 1 && self.git().commit(&adopted[0])?.tree == tree {
@@ -178,6 +187,19 @@ impl<'g> Lens<'g> {
         // don't change derived commits.
         let oid = self.git().commit_tree(&tree, &parents, &c.author, &c.author, &message)?;
         Ok(Some(oid))
+    }
+
+    /// The composition's own work in this occurrence at `c`: derived commits
+    /// reachable from get(c) but from nothing the composition adopted. Empty
+    /// means the occurrence is exactly a component state. Oldest first.
+    pub fn own_work(&self, c: &str) -> Result<Vec<Oid>> {
+        let Some(derived) = self.get(c)? else { return Ok(vec![]) };
+        let mut args = vec!["--topo-order".to_string(), "--reverse".to_string(), derived];
+        for a in self.adopted.borrow().iter() {
+            args.push(format!("^{a}"));
+        }
+        let args: Vec<&str> = args.iter().map(String::as_str).collect();
+        self.git().rev_list(&args)
     }
 
     /// Reduce to commits not ancestors of another in the set, keeping order.
@@ -227,15 +249,18 @@ pub fn plan_adoption(
             None => theirs.tree.clone(),
             Some(ours) if git.is_ancestor(&a.commit, &ours)? => continue, // already contained
             Some(ours) if git.is_ancestor(&ours, &a.commit)? => theirs.tree.clone(), // fast-forward
-            Some(ours) => match git.merge_commits(&ours, &a.commit)? {
-                MergeOutcome::Clean(t) => t,
-                MergeOutcome::Conflict { paths } => bail!(
-                    "adopting {} into {} conflicts with changes the composition holds:\n  {}",
-                    &a.commit[..12],
-                    a.path,
-                    paths.join("\n  ")
-                ),
-            },
+            Some(ours) => {
+                let own = lens.own_work(head)?;
+                if own.is_empty() {
+                    // Nothing of our own: the occurrence simply becomes the
+                    // new component state (e.g. upstream rewrote history).
+                    theirs.tree.clone()
+                } else {
+                    reapply_own_work(git, &ours, &own, &a.commit).map_err(|e| {
+                        anyhow::anyhow!("adopting {} into {}: {e}", &a.commit[..12], a.path)
+                    })?
+                }
+            }
         };
         tree = git.replace_subtree(&tree, &a.path, Some(&merged))?;
         if !parents.contains(&a.commit) {
@@ -247,4 +272,69 @@ pub fn plan_adoption(
         return Ok(None);
     }
     Ok(Some((tree, parents, claims)))
+}
+
+/// Apply the composition's own work on top of `theirs`. For each own commit,
+/// if `theirs` already contains a version of the same change (same
+/// Clonex-Change id, or an identical patch — e.g. squash-merged), only the
+/// difference between that version and ours is applied: a landed change
+/// contributes nothing (so an upstream revert of it stands), and a change
+/// amended after publication applies cleanly over the published version.
+/// Own work containing merges falls back to Git's 3-way merge of the heads.
+fn reapply_own_work(git: &Git, ours: &str, own: &[Oid], theirs: &str) -> Result<Oid> {
+    let theirs_only = git.rev_list(&["--topo-order", theirs, &format!("^{ours}")])?;
+    let mut versions: HashMap<String, Oid> = HashMap::new();
+    for t in &theirs_only {
+        for id in trailer::changes(&git.commit(t)?.message) {
+            versions.entry(id).or_insert_with(|| t.clone());
+        }
+    }
+    let landed_patches = git.run(&["cherry", theirs, ours])?;
+    let landed: HashSet<&str> = landed_patches
+        .lines()
+        .filter_map(|l| l.strip_prefix("- "))
+        .collect();
+    let merges = own.iter().any(|o| git.commit(o).map(|c| c.parents.len() > 1).unwrap_or(true));
+    let hinted = own.iter().any(|o| {
+        landed.contains(o.as_str())
+            || git
+                .commit(o)
+                .map(|c| trailer::changes(&c.message).iter().any(|id| versions.contains_key(id)))
+                .unwrap_or(false)
+    });
+    if merges || !hinted {
+        return match git.merge_commits(ours, theirs)? {
+            MergeOutcome::Clean(t) => Ok(t),
+            MergeOutcome::Conflict { paths } => bail!("conflicts with changes the composition holds:\n  {}", paths.join("\n  ")),
+        };
+    }
+    let mut acc_tree = git.commit(theirs)?.tree;
+    let mut acc_commit = theirs.to_string();
+    for o in own {
+        if landed.contains(o.as_str()) {
+            continue;
+        }
+        let oc = git.commit(o)?;
+        let base = trailer::changes(&oc.message)
+            .iter()
+            .find_map(|id| versions.get(id).cloned())
+            .unwrap_or_else(|| oc.parents[0].clone());
+        let (ok, out, err) = git.try_run(
+            &["merge-tree", "--write-tree", "--name-only", "--no-messages", &format!("--merge-base={base}"), &acc_commit, o],
+            None,
+            &[],
+        )?;
+        let tree = out.lines().next().unwrap_or_default().to_string();
+        if !ok {
+            let paths: Vec<&str> = out.lines().skip(1).take_while(|l| !l.is_empty()).collect();
+            if tree.len() != 40 {
+                bail!("git merge-tree failed: {}", err.trim());
+            }
+            bail!("conflicts with changes the composition holds:\n  {}", paths.join("\n  "));
+        }
+        acc_tree = tree;
+        // A throwaway commit so the next step can merge against it.
+        acc_commit = git.commit_tree(&acc_tree, &[acc_commit.clone()], &oc.author, &oc.author, "clonex: reapply\n")?;
+    }
+    Ok(acc_tree)
 }

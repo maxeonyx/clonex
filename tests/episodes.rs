@@ -303,3 +303,71 @@ fn l5_nested_compositions_compose_their_lenses() {
     assert_eq!(direct, via_u);
     assert_eq!(u.rev(&format!("{direct}^")), remote_rev(&t, "main"));
 }
+
+#[test]
+fn f7_upstream_history_rewrite_is_adopted_when_the_composition_holds_nothing_of_its_own() {
+    let w = World::new();
+    let (u, t) = umbrella_with_trunc(&w);
+    let fixer = w.clone_of(&t, "fixer");
+    fixer.write(".test-status.json", "{\"a\": \"passing\"}\n");
+    fixer.commit("Record ledger");
+    fixer.git(&["push", "-q", "origin", "HEAD:main"]);
+    u.cx_ok(&["sync"]);
+    // The ledger repair: main is rewritten with a different ledger blob.
+    fixer.write(".test-status.json", "{\"a\": \"pending\"}\n");
+    fixer.git(&["add", "-A"]);
+    fixer.git(&["commit", "-q", "--amend", "--no-edit"]);
+    let repaired = fixer.head();
+    fixer.git(&["push", "-q", "--force", "origin", "HEAD:main"]);
+    let out = u.cx(&["sync"]);
+    assert!(out.ok, "no spurious conflict: {}", out.stderr);
+    assert_eq!(u.get("tools/trunc", "HEAD"), repaired, "the occurrence is the repaired main exactly");
+}
+
+#[test]
+fn g6_a_change_squash_merged_and_then_reverted_upstream_stays_reverted() {
+    let w = World::new();
+    let (u, t) = umbrella_with_trunc(&w);
+    u.git(&["switch", "-q", "-c", "feat"]);
+    u.write("tools/trunc/src/lib.rs", "fn trunc() { /* risky */ }\n");
+    u.commit("Risky change");
+    assert_eq!(u.cx_json(&["publish"])[0]["outcome"], "pushed");
+    // Upstream squash-merges the PR, then reverts it.
+    let m = w.clone_of(&t, "maintainer");
+    m.git(&["fetch", "-q", "origin", "feat"]);
+    m.git(&["merge", "-q", "--squash", "FETCH_HEAD"]);
+    m.git(&["commit", "-q", "-m", "Risky change (#3)"]);
+    m.git(&["revert", "--no-edit", "HEAD"]);
+    m.git(&["push", "-q", "origin", "HEAD:main"]);
+    u.cx_ok(&["sync", "trunc", "--branch", "main"]);
+    assert_eq!(u.read("tools/trunc/src/lib.rs"), "fn trunc() {}\n", "the upstream revert stands");
+    assert_eq!(u.get("tools/trunc", "HEAD"), remote_rev(&t, "main"));
+}
+
+#[test]
+fn d12_amending_after_a_reviewer_commit_on_the_pr_branch_does_not_conflict() {
+    let w = World::new();
+    let (u, t) = umbrella_with_trunc(&w);
+    u.git(&["switch", "-q", "-c", "review"]);
+    u.write("tools/trunc/src/lib.rs", "fn trunc() { /* v1 */ }\n");
+    u.commit("Speed up trunc\n\nClonex-Change: c1");
+    assert_eq!(u.cx_json(&["publish"])[0]["outcome"], "pushed");
+    // The reviewer adds a suggestion commit on the PR branch.
+    let r = w.clone_of(&t, "reviewer");
+    r.git(&["fetch", "-q", "origin", "review"]);
+    r.git(&["switch", "-q", "-c", "review", "FETCH_HEAD"]);
+    r.write("AGENTS.md", "trunc agents (reviewed)\n");
+    r.commit("Apply suggestion");
+    r.git(&["push", "-q", "origin", "HEAD:review"]);
+    // Meanwhile the author amends the same change.
+    u.write("tools/trunc/src/lib.rs", "fn trunc() { /* v2 */ }\n");
+    u.git(&["add", "-A"]);
+    u.git(&["commit", "-q", "--amend", "--no-edit"]);
+    let out = u.cx(&["sync", "trunc", "--branch", "review"]);
+    assert!(out.ok, "3-way from the published version, not a conflict: {}", out.stderr);
+    assert_eq!(u.read("tools/trunc/src/lib.rs"), "fn trunc() { /* v2 */ }\n");
+    assert_eq!(u.read("tools/trunc/AGENTS.md"), "trunc agents (reviewed)\n");
+    assert_eq!(u.cx_json(&["publish"])[0]["outcome"], "pushed");
+    assert_eq!(remote_git(&t, &["show", "review:src/lib.rs"]), "fn trunc() { /* v2 */ }");
+    assert_eq!(remote_git(&t, &["show", "review:AGENTS.md"]), "trunc agents (reviewed)");
+}
