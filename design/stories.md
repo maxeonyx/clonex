@@ -409,6 +409,41 @@ network per tool.
 
 ---
 
+## The model, as the owner states it (2026-09-28)
+
+> The umbrella appears to be a monorepo. It is one Git repo, and CloneX
+> knows how to treat it as multiple upstream repos. `cd tools/trunc && git
+> blame` runs over the umbrella's own history, the same as from the root,
+> and names Jim. **Every tool commit has its own umbrella commit. It's the
+> whole model.** Several tool commits, across tools, may be the same
+> umbrella commit, and should be when they are one logical change.
+
+Grounding in the stories:
+- S1: Jim's `j1` and GitHub's merge `t4` each get an umbrella commit, so
+  plain blame in the umbrella names Jim. Their SHAs are the umbrella's;
+  CloneX maps them to `j1`/`t4`.
+- S2: Max's single alias commit *is* the umbrella commit for both trunc's
+  commit and dotsync's commit.
+- S6: the single CVE-fix commit is the umbrella commit for both
+  tdd-ratchet commits (main and the v1.1.6 backport).
+- The **same** umbrella commit should also cover tool commits that were
+  made *elsewhere* but are one logical change. For example, a change made
+  in a view V lands in trunc and dotsync, and the umbrella later brings in
+  both.
+
+**Tension to resolve (not yet decided).** "Every tool commit has its own
+umbrella commit" reads as *one* umbrella commit per tool commit. If Ada
+and Max each bring the same new trunc commit into two different umbrella
+branches, each branch gets an umbrella commit for it, and those two
+necessarily have different trees (each branch's other content). Once the
+branches merge, the umbrella contains two commits for one trunc commit.
+
+The context-free alternative gives one representative everywhere, but it
+breaks Git's merges (`research/r2pp-attack.md` G1). A candidate way out is a
+convention: tool commits enter the umbrella once, on a shared line, and
+branches get them by merging that line. That needs its own story (two
+agents syncing at once).
+
 ## S9. What the stories actually demand
 
 Every requirement below cites the steps that produce it. Anything from the
@@ -423,19 +458,18 @@ old K-list that doesn't appear here is dropped.
 | **W5** | From any umbrella commit, "which commit of tool X is this?" answers the tool's *real* SHA whenever the umbrella's content equals a real tool commit | S2e, S7, S6a |
 | **W6** | Publishing never overwrites commits that others (bots, reviewers, Bob) added; re-publishing after an edit updates only the tools whose part changed | S2d, S3a, S5a |
 | **W7** | The per-tool commit order the umbrella work implies (red → bot → green) is reproduced exactly in each tool | S5c |
-| **W8** | From inside the umbrella, "who changed this tool line, in which tool commit" is at most one step away and names the real author and tool commit | S1c |
+| **W8** | Plain `git blame`/`git log` in the umbrella (from the root or from `tools/trunc`) show each tool commit as its own umbrella commit, with the real author, date and message; CloneX maps each to the real tool SHA | S1c, owner's model |
+| **W13** | One logical change is one umbrella commit, whether it was made in this umbrella or elsewhere and brought in; every tool commit has an umbrella commit | S2, S6, owner's model |
 | **W9** | Nothing about a tool's history rewrite forces the umbrella to rewrite | S7a |
 | **W10** | Two copies of one tool at different revisions can coexist, one frozen; one fix can go to both | S6 |
 | **W11** | Staleness (a bot commit computed for an old version of Ada's commit) is reported, not silently kept | S5d |
 | **W12** | Nothing silently computes a different answer with less history; it says what it needs | S8b |
 
 **What happened to the old constraints:**
-- **K1** ("every tool commit appears as an umbrella commit at the tool's
-  path") is **not demanded by any story as written.** What the stories
-  demand is W8 (the answer is one step away) and W2 (real files).
-  Whether plain `git blame` in the umbrella must itself name Jim is the
-  open owner question in S1. So the empty-copy problem is not a
-  requirement; it was an artefact of my compression.
+- **K1** is **reinstated from the stories and the owner's model** as W8 +
+  W13: every tool commit has an umbrella commit, and one logical change is
+  one umbrella commit. What K1 wrongly added was *context-freedom* (the
+  empty umbrella trees). No story demands that.
 - K3 → W5, K4 → W3, K5 → W3 + W4, K6 → W4 + W6 + W12, K9 → W9, K10 →
   W10.
 - K7 → W2 + W1.
