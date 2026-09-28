@@ -449,7 +449,8 @@ convention: tool commits enter the umbrella once, on a shared line, and
 branches get them by merging that line. That needs its own story (two
 agents syncing at once).
 
-**Owner's answer and a candidate (C″):**
+**Owner's answer and a candidate (C″), now attacked
+(`research/cprime-attack.md`):**
 - The same outside commit *should* be the same umbrella commit on every
   branch. Two copies of one tool at two paths necessarily get different
   umbrella commits (different trees), and that is fine.
@@ -458,7 +459,47 @@ agents syncing at once).
   into. It is then branch-independent, and a real full umbrella state.
 - For tool merge commits, the tree outside the tool path is Git's merge of
   the parents' umbrella trees.
-- Under attack in `research/cprime-attack.md`.
+- **Result:** C″ with W14 fixes F1, F5, F8 and G2 (no markers needed), UC29
+  (one identical object on every clone), force-push, extraction and nesting.
+  Plain C′ is refuted, and duplicate copies are *not* harmless (H2: an
+  upstream revert is undone by an ordinary merge).
+- **Residuals:**
+  - G1 is narrowed but structural: a file added outside `P` after a shared
+    representative's context can still capture a component edit under
+    rename detection.
+  - Plain `git merge` can resurrect content in the amend × reviewer case
+    (w3); CloneX's P-scoped merge fixes that.
+  - Fusion needs a deterministic tie-break and is sensitive to arrival
+    timing (w9).
+  - The S2b choice above.
+
+## S2b. Half-landed: trunc merged Max's change, dotsync hasn't yet (owner choice)
+
+Starting point: S2's single umbrella commit `u` (alias in trunc and dotsync,
+plus the checker) has been published. At 11:00 trunc's integration workflow
+merges PR #13: `t6 = merge(t4, x_T)`, where `x_T` is `u`'s trunc part. At
+11:00 dotsync PR #51 still has an open review comment; dotsync `main` = d2.
+
+At 11:05 someone brings trunc's `main` (t6) into umbrella `main`. By W14,
+t6's umbrella commit has `u` as a parent, because `x_T` *is* `u`. So
+bringing in t6 brings in **all** of `u`, including dotsync's `CLAUDE.md`,
+which dotsync hasn't accepted.
+
+`research/cprime-attack.md` (w1) proves that with plain Git merges exactly
+one of these must happen:
+- **(a) Wait.** Umbrella `main` does not take trunc's `main` past `t6` until
+  every part of `u` has landed. Jim's later typo fix on trunc waits too.
+  This is today's rule ("tool PRs land before the umbrella"), made
+  automatic.
+- **(b) Atomic landing.** The first tool that accepts `u` lands *all* of `u`
+  in umbrella `main`. Umbrella `main` is then ahead of dotsync `main` for
+  `tools/dotsync`, and `cx status` shows "dotsync part of `u` not yet
+  landed". If dotsync rejects it, the umbrella needs a follow-up commit.
+- **(c) Shadow copy.** Umbrella `main` takes trunc's part through a separate
+  copy of `x_T`, without `u`. This brings back duplicates, so an upstream
+  revert can be undone by a later merge (the H2/G2 hazard).
+
+**Owner decision needed.**
 
 ## S9. What the stories actually demand
 
