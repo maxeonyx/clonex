@@ -473,6 +473,24 @@ agents syncing at once).
     timing (w9).
   - The S2b choice above.
 
+## Current representation (candidate C″, endorsed by the owner as the direction)
+
+Each tool commit gets **exactly one** umbrella commit per copy of that tool
+in the umbrella, and it is identical in every clone:
+- An outside commit's umbrella commit is built on the umbrella commit of
+  its tool parent (for merges, a Git merge of the parents' umbrella trees
+  outside the tool path).
+- A tool commit published *from* an umbrella commit `u` maps back to `u`
+  (W14).
+
+Why this matters: Git's 3-way merge needs one shared ancestor for one
+change. Two copies of the same change on two lines let an ordinary merge
+silently undo a later revert (the cherry-pick/revert hazard; see H2 in
+`research/cprime-attack.md`). Principle, from the owner: **minimise
+duplication wherever it can be done deterministically.** A separate user
+flow keeps history as minimal and pleasing as possible (cosmetic, not
+correctness).
+
 ## S2b. Half-landed: trunc merged Max's change, dotsync hasn't yet (owner choice)
 
 Starting point: S2's single umbrella commit `u` (alias in trunc and dotsync,
