@@ -1,27 +1,38 @@
 #!/usr/bin/env python3
 """Render CloneX stories as per-timestep commit DAGs (no refs).
 
-Each story is data: repositories, and steps that add commits, parent
-edges, "is" lines and "rep" lines. Every step draws the cumulative DAG, so
-nothing can be skipped by accident. Output: one HTML page (mermaid).
+Each story is data (stories_spec.py): repositories, and steps that add
+commits, parent edges, "is" lines and "rep" lines. Every step draws the
+cumulative DAG, so nothing can be skipped by accident. Output: one HTML
+page (mermaid).
 
     python3 design/tools/storydags.py > design/story-dags.html
 
 Conventions (see AGENTS.md):
 - circle = commit; dashed box = repository; arrow = parent -> child
-- dotted "is": mapping this composition commit down gives that tool commit
-- thick "rep": this composition commit is THE one that stands for that tool
-  commit (every tool commit has exactly one); rep implies is. In the spec,
+- dotted "is": mapping this composition commit down (π) gives that tool
+  commit
+- thick "is · rep": this composition commit is also THE one that stands for
+  that tool commit (ρ); every tool commit has exactly one. In the spec,
   "made" marks a rep the tool commit was derived from (W14), "rep" one
   brought in from outside (must be built on its tool parents' reps)
-- grey = no longer reachable from any line anyone is working on
-- is/rep/made entries are (composition commit, tool commit) or, when one
-  tool appears at two paths, (composition commit, tool commit, occurrence)
+- faded = no longer part of any line of work
+- a commit is named by its label (U_3, π_T(U_3), ρ_U(T_5)); is/rep/made
+  entries are (composition commit, tool commit) or, when one tool appears
+  at two paths, (composition commit, tool commit, occurrence)
 """
 import html
+import re
 import sys
 
 from stories_spec import STORIES
+
+SUB = re.compile(r"(?<![A-Za-z])([A-Zρπ][0-9]?)_([0-9A-Za-z.]+)")
+
+
+def fmt(s):
+    """X_n → X<sub>n</sub>, for text that is already HTML."""
+    return SUB.sub(r"\1<sub>\2</sub>", s)
 
 
 def occ(line, repo_of):
@@ -29,79 +40,70 @@ def occ(line, repo_of):
     return line[2] if len(line) > 2 else repo_of[line[1]]
 
 
-def link(kind, line):
-    text = kind if len(line) < 3 else f"{kind} @{line[2]}"
-    style = "===" if kind == "rep" else "-.-"
-    return f'  {line[0]} {style}|"{text}"| {line[1]}'
-
-
-def mermaid(story, upto):
-    repos = story["repos"]
-    nodes = {r: [] for r, _ in repos}
-    edges, is_lines, rep_lines, dim = [], [], [], set()
+def state(story, upto):
+    commits, edges, is_lines, rep_lines, dim = [], [], [], [], set()
     for step in story["steps"][: upto + 1]:
-        for repo, nid, label in step.get("commits", []):
-            nodes[repo].append((nid, label))
+        commits += step.get("commits", [])
         edges += step.get("edges", [])
         is_lines += step.get("is", [])
         rep_lines += step.get("rep", []) + step.get("made", [])
         dim |= set(step.get("dim", []))
+    return commits, edges, is_lines, rep_lines, dim
+
+
+def mermaid(story, upto):
+    commits, edges, is_lines, rep_lines, dim = state(story, upto)
+    ids = {c[1]: f"n{i}" for i, c in enumerate(commits)}
     out = ["flowchart LR"]
-    for repo, title in repos:
-        out.append(f'  subgraph {repo}["{title}"]')
-        for nid, label in nodes[repo]:
-            out.append(f'    {nid}(("{label}"))')
+    for repo, title in story["repos"]:
+        out.append(f'  subgraph {repo}["{repo} · {title}"]')
+        for c in commits:
+            if c[0] == repo:
+                note = f"<br><small>{html.escape(c[2])}</small>" if len(c) > 2 else ""
+                out.append(f'    {ids[c[1]]}(("{fmt(html.escape(c[1]))}{note}"))')
         out.append("  end")
     for a, b in edges:
-        out.append(f"  {a} --> {b}")
-    reps = set(rep_lines)
-    for line in rep_lines:
-        out.append(link("rep", line))
-    for line in is_lines:
-        if line not in reps:
-            out.append(link("is", line))
-    for repo, _ in repos:
+        out.append(f"  {ids[a]} --> {ids[b]}")
+
+    def link(kind, line):
+        text = kind if len(line) < 3 else f"{kind} @{line[2]}"
+        style = "-.-" if kind == "is" else "==="
+        return f'  {ids[line[0]]} {style}|"{text}"| {ids[line[1]]}'
+
+    out += [link("is · rep", line) for line in rep_lines]
+    out += [link("is", line) for line in is_lines if line not in rep_lines]
+    for repo, _ in story["repos"]:
         out.append(f"  style {repo} fill:none,stroke-dasharray: 6 4")
     if dim:
         out.append("  classDef dim opacity:0.35")
-        out.append("  class " + ",".join(sorted(dim)) + " dim")
+        out.append("  class " + ",".join(sorted(ids[d] for d in dim)) + " dim")
     return "\n".join(out)
 
 
 def table(story, upto):
-    labels, is_map, order, comp_repos = {}, {}, [], set(story.get("compositions", []))
+    commits, _, is_lines, rep_lines, _ = state(story, upto)
+    comps = set(story["compositions"])
+    repo_of = {c[1]: c[0] for c in commits}
     titles = dict(story["repos"])
-    columns = {r: titles[r] for r, _ in story["repos"] if r not in comp_repos}
-    repo_of = {}
-    for step in story["steps"][: upto + 1]:
-        for repo, nid, label in step.get("commits", []):
-            labels[nid] = label
-            repo_of[nid] = repo
-            if repo in comp_repos:
-                order.append(nid)
-        for line in step.get("is", []) + step.get("rep", []) + step.get("made", []):
-            o = occ(line, repo_of)
-            if o not in columns:
-                columns.pop(repo_of[line[1]], None)
-                columns[o] = f"{titles[repo_of[line[1]]]} @{o}"
-            is_map.setdefault(line[0], {})[o] = labels[line[1]]
+    columns = {r: f"{r} · {t}" for r, t in story["repos"] if r not in comps}
+    is_map = {}
+    for line in is_lines + rep_lines:
+        o = occ(line, repo_of)
+        if o not in columns:
+            columns.pop(repo_of[line[1]], None)
+            columns[o] = f"{titles[repo_of[line[1]]]} @{o}"
+        is_map.setdefault(line[0], {})[o] = line[1]
+    order = [c[1] for c in commits if c[0] in comps]
     if not order:
         return ""
-    tool_repos = list(columns)
-    head = "".join(f"<th>{html.escape(columns[r])} is</th>" for r in tool_repos)
-    rows = []
-    for nid in order:
-        cells = "".join(
-            f"<td><code>{html.escape(is_map.get(nid, {}).get(r, '—'))}</code></td>" for r in tool_repos
-        )
-        rows.append(f"<tr><td><code>{html.escape(labels[nid])}</code></td>{cells}</tr>")
-    return (
-        '<div class="tablewrap"><table><tr><th>composition commit</th>'
-        + head
+    head = "".join(f"<th>π to {html.escape(t)}</th>" for t in columns.values())
+    rows = "".join(
+        f"<tr><td>{fmt(html.escape(n))}</td>"
+        + "".join(f"<td>{fmt(html.escape(is_map.get(n, {}).get(o, '—')))}</td>" for o in columns)
         + "</tr>"
-        + "".join(rows)
-        + "</table></div>"
+        for n in order
     )
+    return f'<div class="tablewrap"><table><tr><th>composition commit</th>{head}</tr>{rows}</table></div>'
 
 
 CSS = """
@@ -123,19 +125,30 @@ table{border-collapse:collapse;font-size:.88rem}th,td{text-align:left;padding:3p
 .verdict{border-left:3px solid var(--ok);padding-left:12px}.hazard{border-left:3px solid var(--warn);padding-left:12px}
 """
 
+KEY = """<div class='key'>
+<span>○ circle = a commit · dashed box = a repository with its own commit DAG · arrow = parent → child</span>
+<span>each repository is a letter (U umbrella, T trunc, D dotsync, …); its commits are U_1, U_2, …, with U_2a, U_2b for two lines from one point, and U_3′ for a new version of U_3</span>
+<span><b>π_T(U_3)</b> = the trunc commit that U_3 maps down to. Every umbrella commit that contains trunc maps down to exactly one trunc commit; it has this name when U_3 is where it first appears</span>
+<span><b>ρ_U(T_5)</b> = the umbrella commit that stands for T_5 (its rep), when T_5 was brought in from outside. Every tool commit has exactly one rep, and π_T(ρ_U(T_5)) = T_5</span>
+<span>dotted <b>is</b> = π: mapping this umbrella commit down gives that tool commit · thick <b>is · rep</b> = π, and ρ back: this is <em>the</em> umbrella commit for that tool commit</span>
+<span>a tool in two places has occurrences R1, R2, written π_R2 and ρ_U.R2 · faded = no longer part of any line of work</span>
+</div>"""
+
 
 def check(story):
     """Refuse to draw a story that breaks the model's own bookkeeping."""
-    seen, repo_of, reps, is_of = [], {}, {}, {}
-    comps = set(story.get("compositions", []))
+    repo_of, reps, is_of = {}, {}, {}
+    comps = set(story["compositions"])
     for i, step in enumerate(story["steps"]):
         where = f"{story['id']} step {i}"
-        for repo, nid, _ in step.get("commits", []):
-            assert nid not in repo_of, f"{where}: {nid} added twice"
-            repo_of[nid] = repo
+        for c in step.get("commits", []):
+            assert c[1] not in repo_of, f"{where}: {c[1]} added twice"
+            repo_of[c[1]] = c[0]
         for a, b in step.get("edges", []):
             assert a in repo_of and b in repo_of, f"{where}: edge {a}->{b} names a missing commit"
             assert repo_of[a] == repo_of[b], f"{where}: parent edge {a}->{b} crosses repositories"
+        for d in step.get("dim", []):
+            assert d in repo_of, f"{where}: dims missing commit {d}"
         for kind in ("is", "rep", "made"):
             for line in step.get(kind, []):
                 a, b = line[:2]
@@ -177,31 +190,27 @@ def render():
         "<main>",
         "<header style='display:grid;gap:10px'><h1>CloneX Story DAGs</h1>",
         "<p class='lede'>Stories from <code>design/stories.md</code>, walked one event at a time. Commits only, no refs. Generated by <code>design/tools/storydags.py</code>.</p>",
-        "<div class='key'><span>○ circle = a commit · dashed box = a repository with its own commit DAG · arrow = parent → child</span>"
-        "<span>dotted <b>is</b> = mapping this composition commit down to the tool gives exactly that commit</span>"
-        "<span>thick <b>rep</b> = this is <em>the</em> composition commit that stands for that tool commit; every tool commit has exactly one</span>"
-        "<span>faded = no longer part of any line of work (e.g. replaced by a rebase)</span></div>",
-        "<nav>" + "".join(f"<a href='#{s['id']}'>{s['id']} {html.escape(s['title'])}</a>" for s in STORIES) + "</nav></header>",
+        fmt(KEY),
+        "<nav>" + "".join(f"<a href='#{s['id']}'>{s['id']} {fmt(html.escape(s['title']))}</a>" for s in STORIES) + "</nav></header>",
     ]
     for s in STORIES:
-        parts.append(f"<h2 id='{s['id']}'>{s['id']} · {html.escape(s['title'])}</h2>")
-        parts.append(f"<p>{s['setup']}</p>")
+        parts.append(f"<h2 id='{s['id']}'>{s['id']} · {fmt(html.escape(s['title']))}</h2>")
+        parts.append(f"<p>{fmt(s['setup'])}</p>")
         for i, step in enumerate(s["steps"]):
             parts.append("<section>")
-            parts.append(f"<div class='step'>Step {i}</div><h3>{step['title']}</h3>")
+            parts.append(f"<div class='step'>Step {i}</div><h3>{fmt(html.escape(step['title']))}</h3>")
             if step.get("cmds"):
-                parts.append("<pre class='cmd'>" + html.escape("\n".join(step["cmds"])) + "</pre>")
+                parts.append("<pre class='cmd'>" + fmt(html.escape("\n".join(step["cmds"]))) + "</pre>")
             if step.get("text"):
-                parts.append(f"<p>{step['text']}</p>")
+                parts.append(f"<p>{fmt(step['text'])}</p>")
             parts.append(f"<div class='diagram'><pre class='mermaid'>\n{mermaid(s, i)}\n</pre></div>")
             parts.append(table(s, i))
-            if step.get("verdict"):
-                parts.append(f"<p class='verdict'>{step['verdict']}</p>")
-            if step.get("hazard"):
-                parts.append(f"<p class='hazard'>{step['hazard']}</p>")
+            for key in ("verdict", "hazard"):
+                if step.get(key):
+                    parts.append(f"<p class='{key}'>{fmt(step[key])}</p>")
             parts.append("</section>")
         if s.get("conclusion"):
-            parts.append(f"<p class='verdict'><b>What this story demands:</b> {s['conclusion']}</p>")
+            parts.append(f"<p class='verdict'><b>What this story demands:</b> {fmt(s['conclusion'])}</p>")
     parts.append("</main>")
     return "\n".join(parts)
 

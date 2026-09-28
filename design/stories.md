@@ -37,12 +37,12 @@ disabled on the tool repos, as they really are):
 `maxeonyx/trunc`, branch `main`:
 
 ```
-t1  "Start trunc"                 src/lib.rs, src/help.txt, AGENTS.md
-t2  "Add --max-lines"             src/lib.rs
-t3  "Merge pull request #4 …"     (merge commit)
+T_1  "Start trunc"                 src/lib.rs, src/help.txt, AGENTS.md
+T_2  "Add --max-lines"             src/lib.rs
+T_3  "Merge pull request #4 …"     (merge commit)
 ```
 
-`src/help.txt` at t3:
+`src/help.txt` at T_3:
 
 ```
 Usage: trunc [--max-lines N] FILE
@@ -52,16 +52,16 @@ Truncates FILE to N lines. Defualt: 50.        ← the typo
 `maxeonyx/dotsync`, branch `main`:
 
 ```
-d1  "Start dotsync"               src/main.rs, AGENTS.md
-d2  "Release 0.9.1"               Cargo.toml
+D_1  "Start dotsync"               src/main.rs, AGENTS.md
+D_2  "Release 0.9.1"               Cargo.toml
 ```
 
 `maxeonyx/agent-tools` (the umbrella U), branch `main`:
 
 ```
-u1  "Start umbrella"              README.md, crates/standards/…, .gitmodules
-u2  "Pin trunc at t3"             tools/trunc  → gitlink t3
-u3  "Pin dotsync at d2"           tools/dotsync → gitlink d2
+U_1  "Start umbrella"              README.md, crates/standards/…, .gitmodules
+U_2  "Pin trunc at T_3"            tools/trunc  → gitlink T_3
+U_3  "Pin dotsync at D_2"          tools/dotsync → gitlink D_2
 ```
 
 `.gitmodules` in U:
@@ -72,6 +72,32 @@ u3  "Pin dotsync at d2"           tools/dotsync → gitlink d2
 ```
 
 ---
+
+## Notation
+
+- Each repository is a letter: U umbrella, T trunc, D dotsync, B tb,
+  R tdd-ratchet, C crosscut, H agent-harness, V a throwaway view.
+- Its commits are numbered in order within one story: T_1, T_2, …. Two
+  lines growing from one point are U_2a and U_2b. A new version of the
+  same change (an amend, a rewrite) is U_3′.
+- **π, down.** π_T(u) is the trunc commit that umbrella commit u maps
+  down to. Every umbrella commit that contains trunc maps down to exactly
+  one trunc commit. Often that is an existing one: if U_3a doesn't touch
+  trunc, π_T(U_3a) = T_4. When u is where a trunc commit first appears,
+  that commit is derived from u, and it is *named* π_T(u).
+- **ρ, up.** ρ_U(t) is the umbrella commit that stands for tool commit t,
+  its *rep*. Every tool commit has exactly one. For a commit derived from
+  u, the rep is u itself: ρ_U(π_T(u)) = u. For a commit made outside and
+  brought in, the rep is a new umbrella commit, named ρ_U(t).
+- π_T(ρ_U(t)) = t always. The reverse fails: many umbrella commits map
+  down to T_4, and only one of them is its rep.
+- A tool that appears at two paths has occurrences R1 and R2, written
+  π_R2 and ρ_U.R2.
+- In the diagrams, a dotted "is" line is π, and a thick "is · rep" line is
+  π with ρ back.
+
+How reps and replacement records are written into commits (the metadata)
+is parked while the stories are still being walked.
 
 ## S1. Jim fixes a typo in trunc (the outsider story)
 
@@ -84,7 +110,7 @@ On `jim-pc`:
 > cd trunc
 > git switch -c fix-typo
   (edits src/help.txt: "Defualt" → "Default")
-> git commit -am "Fix typo in help text"          → commit j1, parent t3, author Jim
+> git commit -am "Fix typo in help text"          → commit T_4, parent T_3, author Jim
 > git push -u origin fix-typo
 > gh pr create --repo maxeonyx/trunc
 ```
@@ -93,16 +119,16 @@ State now:
 
 | where | state |
 |---|---|
-| `jim-pc` `trunc/` | `main`=t3, `fix-typo`=j1 |
-| `jimsfork/trunc` | `fix-typo`=j1 |
-| `maxeonyx/trunc` | `main`=t3; PR #12 from Jim's `fix-typo`; `refs/pull/12/head`=j1 |
-| `maxeonyx/agent-tools` | unchanged; `tools/trunc` → t3 |
+| `jim-pc` `trunc/` | `main`=T_3, `fix-typo`=T_4 |
+| `jimsfork/trunc` | `fix-typo`=T_4 |
+| `maxeonyx/trunc` | `main`=T_3; PR #12 from Jim's `fix-typo`; `refs/pull/12/head`=T_4 |
+| `maxeonyx/agent-tools` | unchanged; `tools/trunc` → T_3 |
 
 Max reviews PR #12 on GitHub and clicks "Merge pull request". GitHub
-creates `t4 = merge(t3, j1)`, committer GitHub, signed by GitHub. Now
-`maxeonyx/trunc main` = t4.
+creates `T_5 = merge(T_3, T_4)`, committer GitHub, signed by GitHub. Now
+`maxeonyx/trunc main` = T_5.
 
-The umbrella still points at t3. Nothing happens to it until Max does
+The umbrella still points at T_3. Nothing happens to it until Max does
 this, in a clean clone on `maxbook`:
 
 ```
@@ -111,7 +137,7 @@ $ git submodule update --init tools/trunc
 $ cd tools/trunc && git fetch && git switch --detach origin/main && cd ../..
 $ git add tools/trunc
 $ python3 scripts/generate-version-json.py
-$ git commit -m "Point trunc at t4"             → u4
+$ git commit -m "Point trunc at T_5"             → U_4
 $ git push
 ```
 
@@ -122,16 +148,16 @@ What each person sees afterwards:
   ```
   $ cd tools/trunc
   $ git log --oneline -- src/help.txt
-  t4 Merge pull request #12 from jim/fix-typo
-  j1 Fix typo in help text
-  t1 Start trunc
-  $ git blame src/help.txt        → line 2: j1 (Jim …)
+  T_5 Merge pull request #12 from jim/fix-typo
+  T_4 Fix typo in help text
+  T_1 Start trunc
+  $ git blame src/help.txt        → line 2: T_4 (Jim …)
   ```
   This works today because `tools/trunc` *is* a trunc repository.
-- **Max, from the umbrella root:** `git log -- tools/trunc` shows u4
-  "Point trunc at t4" and u2, the pointer bumps. The diff of u4 is one
-  line: `-Subproject commit t3 / +Subproject commit t4`.
-- **GitHub, umbrella view:** `tools/trunc` shows as "trunc @ t4", a link to
+- **Max, from the umbrella root:** `git log -- tools/trunc` shows U_4
+  "Point trunc at T_5" and U_2, the pointer bumps. The diff of U_4 is one
+  line: `-Subproject commit T_3 / +Subproject commit T_5`.
+- **GitHub, umbrella view:** `tools/trunc` shows as "trunc @ T_5", a link to
   the other repo. There is no file browsing, no blame and no search inside
   it.
 
@@ -143,7 +169,7 @@ What each person sees afterwards:
 - **Max, three weeks later, from inside the umbrella:** a question like
   "who changed this help line?" is answered at least as easily as today's
   `cd tools/trunc && git blame src/help.txt`, which names **Jim** and
-  **j1**, and names *t4 as the commit trunc knows it by*, the same SHA
+  **T_4**, and names *T_5 as the commit trunc knows it by*, the same SHA
   GitHub shows. *(Q-S1c)*
 - **GitHub, umbrella view:** `tools/trunc/src/help.txt` is a real file
   there, browsable and searchable. *(Q-S1d)*
@@ -174,23 +200,23 @@ $ git submodule update --init tools/trunc tools/dotsync
 $ cd tools/trunc
 $ git switch -c claude-md-alias origin/main
 $ ln -s AGENTS.md CLAUDE.md
-$ git add CLAUDE.md && git commit -m "Alias AGENTS.md as CLAUDE.md"      → t5 (parent t4)
+$ git add CLAUDE.md && git commit -m "Alias AGENTS.md as CLAUDE.md"      → T_6 (parent T_5)
 $ git push -u origin claude-md-alias
 $ gh pr create --fill                                                  → trunc PR #13
 $ gh workflow run ci.yml --ref claude-md-alias -f pr_number=13
 $ cd ../..
 
-# dotsync — the same four steps                                        → d3, dotsync PR #51
+# dotsync — the same four steps                                        → D_3, dotsync PR #51
 
 # umbrella: the checker
   (writes crates/standards/src/concerns/claude_alias.rs)
-$ git add crates && git commit -m "Require a CLAUDE.md alias beside every AGENTS.md"   → u5
-  … waits for both tool PRs to merge (t6 = merge(t4,t5), d4 = merge(d2,d3)) …
+$ git add crates && git commit -m "Require a CLAUDE.md alias beside every AGENTS.md"   → U_5
+  … waits for both tool PRs to merge (T_7 = merge(T_5,T_6), D_4 = merge(D_2,D_3)) …
 $ cd tools/trunc && git fetch && git switch --detach origin/main && cd ../..
 $ cd tools/dotsync && git fetch && git switch --detach origin/main && cd ../..
 $ git add tools/trunc tools/dotsync
 $ python3 scripts/generate-version-json.py
-$ git commit -m "Point trunc and dotsync at the alias merges"                           → u6
+$ git commit -m "Point trunc and dotsync at the alias merges"                           → U_6
 $ git push -u origin claude-md-alias && gh pr create --fill                           → umbrella PR #44
 ```
 
@@ -216,8 +242,8 @@ After `cx publish`, Max sees:
 
 | where | state |
 |---|---|
-| `maxeonyx/trunc` | branch `claude-md-alias` with **one** commit: "Alias AGENTS.md as CLAUDE.md everywhere and check it", author Max, containing only `CLAUDE.md`, parent t4 |
-| `maxeonyx/dotsync` | same, containing only `CLAUDE.md`, parent d2 |
+| `maxeonyx/trunc` | branch `claude-md-alias` with **one** commit: "Alias AGENTS.md as CLAUDE.md everywhere and check it", author Max, containing only `CLAUDE.md`, parent T_5 |
+| `maxeonyx/dotsync` | same, containing only `CLAUDE.md`, parent D_2 |
 | `maxeonyx/agent-tools` | branch `claude-md-alias` with the one commit |
 | PRs | one per repo, each linking the others (a hosting step, and may stay manual at first) |
 
@@ -231,33 +257,33 @@ After `cx publish`, Max sees:
   umbrella, commits, and runs `cx publish` again. trunc's PR gets the fix;
   dotsync's PR is not touched. *(Q-S2d)*
 
-When the tool PRs are merged by the integration workflow (t6, d4 on the
+When the tool PRs are merged by the integration workflow (T_7, D_4 on the
 tools' `main`), the umbrella branch must be able to merge into umbrella
 `main` without Max re-doing anything. Afterwards, from umbrella `main`,
-"which trunc commit is `tools/trunc` now?" answers **t6**, the SHA trunc's
+"which trunc commit is `tools/trunc` now?" answers **T_7**, the SHA trunc's
 own `main` has, so `latest-ci-green` and tags keep working. *(Q-S2e)*
 
 ---
 
 ## S3. Bob works on dotsync while Ada changes dotsync from the umbrella (concurrency)
 
-Starting state: dotsync `main` = d4 (after S2).
+Starting state: dotsync `main` = D_4 (after S2).
 
 **Bob, on `bob-mac`, 10:00:**
 
 ```
 % git clone git@github.com:maxeonyx/dotsync.git && cd dotsync
 % (edits src/main.rs: renames fn load_scopes → read_scopes, updates all 3 call sites)
-% git commit -am "Rename load_scopes"          → b1 (parent d4)
+% git commit -am "Rename load_scopes"          → D_5 (parent D_4)
 % git push origin main                          (Bob may push main directly)
 ```
 
-`maxeonyx/dotsync main` = b1.
+`maxeonyx/dotsync main` = D_5.
 
 **Ada, on `maxbook`, 09:30–10:30,** in `at-config-concern`, cloned at 09:30
-when dotsync was d4. Ada adds config loading to trunc and dotsync. In
+when dotsync was D_4. Ada adds config loading to trunc and dotsync. In
 dotsync that means a new call `load_scopes(&cfg)` in `src/config.rs`.
-Umbrella commit `a1` touches `tools/trunc/src/config.rs`,
+Umbrella commit `U_5` touches `tools/trunc/src/config.rs`,
 `tools/dotsync/src/config.rs` and `crates/standards/…`.
 
 **10:30, Ada publishes.**
@@ -269,15 +295,15 @@ Umbrella commit `a1` touches `tools/trunc/src/config.rs`,
 - **Wanted:**
   - `cx publish` succeeds for trunc and for Ada's new dotsync branch
     (branches are new; nobody else's work is overwritten). *(Q-S3a)*
-  - Ada can see, from the umbrella, that dotsync moved (b1) since her base
-    (d4), with one command. *(Q-S3b)*
-  - Ada can bring b1 into her umbrella branch with one command. It is an
+  - Ada can see, from the umbrella, that dotsync moved (D_5) since her base
+    (D_4), with one command. *(Q-S3b)*
+  - Ada can bring D_5 into her umbrella branch with one command. It is an
     ordinary Git merge in the umbrella (`git merge` or equivalent). Her
     umbrella build then fails on `load_scopes` *in the umbrella*, where she
-    can fix it. She commits `a2` (rename the call), publishes again, and the
+    can fix it. She commits `U_7` (rename the call), publishes again, and the
     dotsync branch gets that fix. *(Q-S3c)*
   - In dotsync's history, Ada's branch is then an ordinary branch that
-    merged `main` (b1) and fixed the call. That is exactly what AGENTS.md
+    merged `main` (D_5) and fixed the call. That is exactly what AGENTS.md
     already asks ("merge current child main into the branch"). *(Q-S3d)*
   - **Bob never sees any of this except Ada's PR.** *(Q-S1a again)*
 
@@ -422,9 +448,9 @@ network per tool.
 > uncertainty about this; it is intentional.)
 
 Grounding in the stories:
-- S1: Jim's `j1` and GitHub's merge `t4` each get an umbrella commit, so
+- S1: Jim's `T_4` and GitHub's merge `T_5` each get an umbrella commit, so
   plain blame in the umbrella names Jim. Their SHAs are the umbrella's;
-  CloneX maps them to `j1`/`t4`.
+  CloneX maps them to `T_4`/`T_5`.
 - S2: Max's single alias commit *is* the umbrella commit for both trunc's
   commit and dotsync's commit.
 - S6: the single CVE-fix commit is the umbrella commit for both
@@ -494,35 +520,35 @@ correctness).
 ## S2b. Half-landed: trunc merged Max's change, dotsync hasn't yet
 
 > **Reclassified after drawing the DAGs with the owner:** at level 1
-> (commits only) there is no problem. `ρ(t6)` has parents `U3` and `u`, is
-> "trunc = t6, dotsync = x_D", and maps down to real commits in both tools.
+> (commits only) there is no problem. `ρ_U(T_5)` has parents `U_3` and `U_4`, is
+> "trunc = T_5, dotsync = π_D(U_4)", and maps down to real commits in both tools.
 > Everything below is about which umbrella commit a *label* (`main`)
 > should point at while dotsync's label hasn't moved. That is a
 > **level-2 (refs) question**, deferred with the other ref stories. The
 > timestep DAGs were drawn for the owner as an artifact page.
 
-Starting point: S2's single umbrella commit `u` (alias in trunc and dotsync,
+Starting point: S2's single umbrella commit `U_4` (alias in trunc and dotsync,
 plus the checker) has been published. At 11:00 trunc's integration workflow
-merges PR #13: `t6 = merge(t4, x_T)`, where `x_T` is `u`'s trunc part. At
+merges PR #13: `T_5 = merge(T_4, π_T(U_4))`, where `π_T(U_4)` is `U_4`'s trunc part. At
 11:00 dotsync PR #51 still has an open review comment; dotsync `main` = d2.
 
-At 11:05 someone brings trunc's `main` (t6) into umbrella `main`. By W14,
-t6's umbrella commit has `u` as a parent, because `x_T` *is* `u`. So
-bringing in t6 brings in **all** of `u`, including dotsync's `CLAUDE.md`,
+At 11:05 someone brings trunc's `main` (T_5) into umbrella `main`. By W14,
+T_5's umbrella commit has `U_4` as a parent, because `π_T(U_4)` *is* `U_4`. So
+bringing in T_5 brings in **all** of `U_4`, including dotsync's `CLAUDE.md`,
 which dotsync hasn't accepted.
 
 `research/cprime-attack.md` (w1) proves that with plain Git merges exactly
 one of these must happen:
-- **(a) Wait.** Umbrella `main` does not take trunc's `main` past `t6` until
-  every part of `u` has landed. Jim's later typo fix on trunc waits too.
+- **(a) Wait.** Umbrella `main` does not take trunc's `main` past `T_5` until
+  every part of `U_4` has landed. Jim's later typo fix on trunc waits too.
   This is today's rule ("tool PRs land before the umbrella"), made
   automatic.
-- **(b) Atomic landing.** The first tool that accepts `u` lands *all* of `u`
+- **(b) Atomic landing.** The first tool that accepts `U_4` lands *all* of `U_4`
   in umbrella `main`. Umbrella `main` is then ahead of dotsync `main` for
-  `tools/dotsync`, and `cx status` shows "dotsync part of `u` not yet
+  `tools/dotsync`, and `cx status` shows "dotsync part of `U_4` not yet
   landed". If dotsync rejects it, the umbrella needs a follow-up commit.
 - **(c) Shadow copy.** Umbrella `main` takes trunc's part through a separate
-  copy of `x_T`, without `u`. This brings back duplicates, so an upstream
+  copy of `π_T(U_4)`, without `U_4`. This brings back duplicates, so an upstream
   revert can be undone by a later merge (the H2/G2 hazard).
 
 **Level-2 question, deferred.**
@@ -533,28 +559,23 @@ Walked one event at a time in `design/story-dags.html`, generated from
 `design/tools/stories_spec.py` by `design/tools/storydags.py`. The
 generator refuses to draw a story that breaks the model's bookkeeping.
 
-**Two relations, now kept apart:**
-- **is:** mapping a composition commit down to a tool gives this commit.
-  Many composition commits can *be* t4 (every one whose trunc content is
-  t4).
-- **rep:** *the* composition commit that stands for a tool commit.
-  Every tool commit has exactly one. There are two kinds:
-  - **made here:** the composition commit the tool commit was derived from
-    (W14). Its parent must *be* the tool parent.
-  - **brought in:** an outside commit. It must be built on the *rep* of
-    each tool parent (C″), which is what makes it identical on every
-    machine.
+The two relations are π ("is") and ρ ("rep"); see Notation. A rep comes
+in two kinds:
+- **derived:** u is the rep of π_T(u) (W14). Some parent of u must map
+  down to each parent of π_T(u).
+- **brought in:** ρ_U(t) is built on the reps of t's parents (C″), which
+  is what makes it identical on every machine.
 
 **What the new stories demand:**
 - **S10:** two people bringing in the same commit create the identical
   rep. Bringing in is two explicit steps: create the rep (like a fetch),
   then an ordinary merge.
-- **S11:** plain `git rebase` copies a rep (ρ′(j1)), producing a
+- **S11:** plain `git rebase` copies a rep (ρ_U(T_5)′), producing a
   duplicate and bringing back the revert hazard. Reps must be immutable in
   jj, `cx status` must detect copies, and the repair is to move only one's
   own commits and keep the merge.
 - **S12:** a GitHub squash of an umbrella PR hides a rep inside a new
-  commit. CloneX must still prove it *is* j1 (trailer plus content), so
+  commit. CloneX must still prove it *is* T_5 (its record plus content), so
   it never publishes a false copy. Merge-commit-only avoids the duplicate.
 - **S13:** extraction needs no new umbrella commits: the existing ones
   become reps (made here). Later outside commits are built on those, which
@@ -575,7 +596,7 @@ generator refuses to draw a story that breaks the model's bookkeeping.
      shared.** Rewriting it requires explicitly dropping the outside work
      (`cx drop-above`, which lists what is dropped), never silently carrying
      it along. jj enforces this if reps are immutable heads. Without that,
-     jj would rebase `ρ(b)` and publishing would push a forged bot commit.
+     jj would rebase `ρ_U(T_5)` and publishing would push a forged bot commit.
   3. **Staleness is detected by change-id supersession.** An incoming tool
      commit whose rep would sit on a superseded version of one of our
      changes is reported as stale and not brought in. Without a change-id
@@ -585,8 +606,8 @@ generator refuses to draw a story that breaks the model's bookkeeping.
   Fixing forward (S5a, the owner's append-only preference) needs none of
   this.
 
-- **S3 (Bob's rename while Ada works from the umbrella):** Bob's b1 comes
-  in as its own rep on d4's rep, beside Ada's work, and joins it by an
+- **S3 (Bob's rename while Ada works from the umbrella):** Bob's D_5 comes
+  in as its own rep on D_4's rep, beside Ada's work, and joins it by an
   ordinary merge. The textual merge is clean and the break shows up in the
   umbrella, where Ada fixes it. The merge maps down to dotsync's ordinary
   "merge main into my branch" commit. When dotsync merges her PR, its rep
@@ -603,10 +624,10 @@ generator refuses to draw a story that breaks the model's bookkeeping.
 - **S7 (tb's history rewritten):** the new history comes in as new reps
   built on the last shared rep, beside the old ones. One merge joins them,
   and it must:
-  1. use the *replaced* commit (e3) as the base for the tool's path, not
+  1. use the *replaced* commit (B_3) as the base for the tool's path, not
      the DAG merge base, or it conflicts in the ledger, a file the umbrella
      never touched;
-  2. record `Clonex-Supersedes: tools/tb e3 e3′` in the merge, or the lens
+  2. record in the merge that B_3′ replaces B_3, or the lens
      maps it to a new tool merge of old and new history and publishing
      puts the bad history back.
 
@@ -623,7 +644,7 @@ generator refuses to draw a story that breaks the model's bookkeeping.
 Still to walk:
 - S14 (nesting);
 - Max working in jj;
-- a forged or mistaken claim, including a wrong `Clonex-Supersedes`.
+- a forged or mistaken claim, including a wrong replacement record.
 
 ## S9. What the stories actually demand
 

@@ -22,13 +22,12 @@ replace Git/jj needlessly. Agents are first-class users.
 
 ## The model
 
-**Start with `design/overview.md`, the current design.** The paragraph below
-and `src/` describe the *earlier* R1 design (verbatim component commits as
-merge parents). R1 was rejected by the audit (`design/research/beat-git-jj-audit.md`)
-in favour of squashed adoptions with transition claims (`<from>..<to>`),
-bound topics in the ref layer, and CloneX-owned cross-history read views.
-The code has not been updated, deliberately: the design is still being
-searched. Don't extend `src/` until the design settles. The laws and
+**Start with `design/stories.md`.** It holds the notation (π down, ρ up),
+the owner's model, the current representation (C″) and every story's
+conclusions. `design/story-dags.html` walks the stories step by step.
+`src/` implements the earlier, rejected R1 design (verbatim component
+commits as merge parents), described below because it is what the code
+does. Don't extend `src/` until the design settles. The laws and
 invariants below still hold as targets.
 
 Earlier model, for context (`design/model.md` §8):
@@ -111,8 +110,14 @@ commit DAG of every repository **at every timestep, with no refs at all**:
 
 Refs (branches, `main`, "trunk", "push to") are level 2 and are designed
 separately. Mixing them in hid real steps and turned label questions into
-false history problems (see S2b). A worked example is the "Half-landed, in
-DAGs" artifact page (steps 0–5), described in `stories.md` S2b.
+false history problems (see S2b).
+
+Write each story as data in `design/tools/stories_spec.py`, in the notation
+of `stories.md`, and render it with `python3 design/tools/storydags.py >
+design/story-dags.html`. The generator refuses a story that breaks the
+model's bookkeeping (two reps for one tool commit, a brought-in rep not
+built on its parents' reps), so a story that renders is at least
+self-consistent.
 
 
 This project is unusually vulnerable to elegant-but-wrong models. The first
