@@ -527,6 +527,48 @@ one of these must happen:
 
 **Level-2 question, deferred.**
 
+## DAG walkthroughs (S2b, S10–S13, S15, S17)
+
+Walked one event at a time in `design/story-dags.html`, generated from
+`design/tools/stories_spec.py` by `design/tools/storydags.py`. The
+generator refuses to draw a story that breaks the model's bookkeeping.
+
+**Two relations, now kept apart:**
+- **is:** mapping a composition commit down to a tool gives this commit.
+  Many composition commits can *be* t4 (every one whose trunc content is
+  t4).
+- **rep:** *the* composition commit that stands for a tool commit.
+  Every tool commit has exactly one. There are two kinds:
+  - **made here:** the composition commit the tool commit was derived from
+    (W14). Its parent must *be* the tool parent.
+  - **brought in:** an outside commit. It must be built on the *rep* of
+    each tool parent (C″), which is what makes it identical on every
+    machine.
+
+**What the new stories demand:**
+- **S10:** two people bringing in the same commit create the identical
+  rep. Bringing in is two explicit steps: create the rep (like a fetch),
+  then an ordinary merge.
+- **S11:** plain `git rebase` copies a rep (ρ′(j1)), producing a
+  duplicate and bringing back the revert hazard. Reps must be immutable in
+  jj, `cx status` must detect copies, and the repair is to move only one's
+  own commits and keep the merge.
+- **S12:** a GitHub squash of an umbrella PR hides a rep inside a new
+  commit. CloneX must still prove it *is* j1 (trailer plus content), so
+  it never publishes a false copy. Merge-commit-only avoids the duplicate.
+- **S13:** extraction needs no new umbrella commits: the existing ones
+  become reps (made here). Later outside commits are built on those, which
+  are full states.
+- **S15:** conversion builds reps for pre-existing history on the commit
+  being converted, so every rep is a full state. Old history is untouched.
+- **S17:** a throwaway composition's first reps have partial trees (it
+  holds nothing else yet). That is the one place the G1 rename residual
+  remains. Discarding V is safe exactly when no V commit is the rep of an
+  unpublished tool commit.
+
+Still to walk: S14 (nesting); Max working in jj; a forged or mistaken
+claim.
+
 ## S9. What the stories actually demand
 
 Every requirement below cites the steps that produce it. Anything from the
