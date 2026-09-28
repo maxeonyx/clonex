@@ -415,8 +415,11 @@ network per tool.
 > knows how to treat it as multiple upstream repos. `cd tools/trunc && git
 > blame` runs over the umbrella's own history, the same as from the root,
 > and names Jim. **Every tool commit has its own umbrella commit. It's the
-> whole model.** Several tool commits, across tools, may be the same
-> umbrella commit, and should be when they are one logical change.
+> whole model.** One umbrella commit across five tools maps to five tool
+> commits, one per tool, and those five map *deterministically back to that
+> same umbrella commit*. Checking out or inspecting the umbrella makes it
+> clear that the umbrella commit subsumes those sub-commits. (There is no
+> uncertainty about this; it is intentional.)
 
 Grounding in the stories:
 - S1: Jim's `j1` and GitHub's merge `t4` each get an umbrella commit, so
@@ -431,7 +434,9 @@ Grounding in the stories:
   in a view V lands in trunc and dotsync, and the umbrella later brings in
   both.
 
-**Tension to resolve (not yet decided).** "Every tool commit has its own
+**Tension to resolve (not yet decided). This is not about W14**, which is
+settled: it concerns a *single foreign* tool commit arriving on two
+branches independently. "Every tool commit has its own
 umbrella commit" reads as *one* umbrella commit per tool commit. If Ada
 and Max each bring the same new trunc commit into two different umbrella
 branches, each branch gets an umbrella commit for it, and those two
@@ -460,6 +465,7 @@ old K-list that doesn't appear here is dropped.
 | **W7** | The per-tool commit order the umbrella work implies (red → bot → green) is reproduced exactly in each tool | S5c |
 | **W8** | Plain `git blame`/`git log` in the umbrella (from the root or from `tools/trunc`) show each tool commit as its own umbrella commit, with the real author, date and message; CloneX maps each to the real tool SHA | S1c, owner's model |
 | **W13** | One logical change is one umbrella commit, whether it was made in this umbrella or elsewhere and brought in; every tool commit has an umbrella commit | S2, S6, owner's model |
+| **W14** | Tool commits published from an umbrella commit `u`, and later brought back into the umbrella (after their PRs merge, or with bot or reviewer commits on top), map back to `u` itself, never to new copies. Inspecting `u` lists the tool commits it subsumes, with their real SHAs | S2e, S5, owner's model |
 | **W9** | Nothing about a tool's history rewrite forces the umbrella to rewrite | S7a |
 | **W10** | Two copies of one tool at different revisions can coexist, one frozen; one fix can go to both | S6 |
 | **W11** | Staleness (a bot commit computed for an old version of Ada's commit) is reported, not silently kept | S5d |
