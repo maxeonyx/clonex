@@ -449,6 +449,17 @@ convention: tool commits enter the umbrella once, on a shared line, and
 branches get them by merging that line. That needs its own story (two
 agents syncing at once).
 
+**Owner's answer and a candidate (C″):**
+- The same outside commit *should* be the same umbrella commit on every
+  branch. Two copies of one tool at two paths necessarily get different
+  umbrella commits (different trees), and that is fine.
+- Candidate: build the outside commit's umbrella commit on the umbrella
+  commit that represents its tool parent, not on the branch it is pulled
+  into. It is then branch-independent, and a real full umbrella state.
+- For tool merge commits, the tree outside the tool path is Git's merge of
+  the parents' umbrella trees.
+- Under attack in `research/cprime-attack.md`.
+
 ## S9. What the stories actually demand
 
 Every requirement below cites the steps that produce it. Anything from the
