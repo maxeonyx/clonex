@@ -98,6 +98,23 @@ depend on it. jj (colocated) or plain Git is the everyday client.
 
 ## How to work on CloneX (the discipline is part of the product)
 
+**Start from stories, and walk commits before refs.** The root of the
+design is `design/stories.md`: named people, machines, exact commands, and
+the state of every disk and remote. When reasoning about history, draw the
+commit DAG of every repository **at every timestep, with no refs at all**:
+- commits are circles, repositories are dashed boxes, and arrows run parent
+  → child;
+- draw an "is" line from every composition commit to the tool commit it
+  corresponds to, in every step;
+- make every event its own step (a tool merge, bringing commits in, an
+  explicit merge in the composition), and never fold two into one.
+
+Refs (branches, `main`, "trunk", "push to") are level 2 and are designed
+separately. Mixing them in hid real steps and turned label questions into
+false history problems (see S2b). A worked example is the "Half-landed, in
+DAGs" artifact page (steps 0–5), described in `stories.md` S2b.
+
+
 This project is unusually vulnerable to elegant-but-wrong models. The first
 design (the event-identity algebra) was elegant and wrong, and so were three
 rules of its replacement. The way they were caught is the method:
