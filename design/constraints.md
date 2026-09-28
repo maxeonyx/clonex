@@ -462,6 +462,18 @@ It fixes every R2′ failure, and its laws hold. New findings:
 A marker-based repair can't close the gap either, because markers only
 protect branches that contain them (G2).
 
+**Correction (after the owner questioned K8).** The proof used
+"context-free", but K8 as worded says only "the same inputs give the same
+commits". A representative that takes the rest of its tree from the
+composition commit it is adopted onto is still deterministic: *where it is
+adopted* is simply one of the inputs. So the strict conflict is K1 × K6 ×
+**context-freedom**, and context-freedom was never derived from a use case;
+it was smuggled in. UC29 (two people adopting the same commits in parallel)
+only needed "no harm", not "identical objects". Option C was dismissed on
+R2′'s failures, but those came from the rule `ρ(get(u)) = u` and a bad
+choice of tree, not from context itself. See C′ below. It is being
+re-examined before this section is rewritten.
+
 **The ways out, each relaxing exactly one constraint:**
 - **A. Relax K6 to "never silently wrong under CloneX-aware operations".**
   Plain `git revert`/`cherry-pick` of a component commit inside a
@@ -477,6 +489,17 @@ protect branches that contain them (G2).
   context.** The earlier R2′ attack showed context trees cause their own
   silent damage (F1, F2), so this is not a real exit. Recorded to show it
   was considered.
+
+- **C′. Replay onto the adoption point (candidate).** New component
+  commits are represented as a lineage replayed on the composition commit
+  they are adopted onto: `ρ(t1)` = that commit's tree with `P` replaced by
+  `t1`'s tree, and its parent is that commit (or the representative of
+  `t1`'s parent, if that is newer). Every representative is then a real,
+  buildable composition state. Its diff against its parent is exactly
+  `t1`'s change, and merge bases contain the whole repo, so G1's rename
+  pairing can't arise. Cost: the same trunc commit adopted onto two
+  different branches gets two representatives, which dedupe by content when
+  merged. Needs its own adversarial replay.
 
 This is a value judgment about the owner's workflows, not an engineering
 question. It is put to the owner with the cases above.
