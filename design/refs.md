@@ -259,3 +259,56 @@ Open:
 - **Whether a CloneX-aware server** later replaces `refs/meta/clonex` and
   anchor refs with something first-class (event index, cross-repo topics).
   Nothing here requires one.
+
+## 8. Attack results and revisions (authoritative over §1–§7)
+
+Source: `research/refs-attack.md`. It replayed 68 episodes: 20 handled, 30
+degraded, 18 failed. The real-Git checks are in its scratch scripts.
+
+**Accepted repairs:**
+- **Name identity is only a *default*; relations are *bound*, never
+  inferred (F1, F2, F8).** Syncing never adopts a component branch merely
+  because its name matches. That silently adopts abandoned branches (one
+  lingers in dotsync today), `dependabot/*`, and another agent's
+  same-named work. Topic bindings go in the ref layer:
+  - `refs/clonex/topics/<N>` records, per `(occurrence, topic)`: the
+    component branch name (identity by default; templates such as `MC-{N}`;
+    suffixes when one component occurs twice), the shared lease (last
+    published tip, so handoff between clones works), an optional stack base,
+    and the state (open, landed, abandoned).
+  - A binding is created by the first publication, or explicitly. Sync
+    follows bindings only.
+  - Still nothing in history. This is the attack's rival model M-A, and it
+    dominates §2's pure-inference rule.
+- **Claims state a transition, `Clonex-Adopt: <path> <from>..<to>`** (F5).
+  A copied adoption, for example by cherry-pick, is valid only where `get_P`
+  of its parent equals `<from>`. Otherwise it is ordinary content. This
+  stops a cherry-picked adoption from publishing "all of main merged into
+  release".
+- **Missing adopted objects are a hard error, never a silent jump** (F4).
+- **The trunk has no induced branch by default** (F3). Composition-trunk
+  work reaches component trunks only through component topics, unless
+  explicitly enabled per component (owner question O6).
+- **Config is keyed by component identity, with a continuity check** (F6).
+  A new URL is accepted only if that remote contains the commits already
+  adopted, so a tampered or mistaken `refs/meta/clonex` can at worst
+  redirect to a mirror or fork of the same history. It can't substitute a
+  different history.
+
+**Reopened: the representation choice is a real tradeoff, not a lean.**
+Reachability that travels with *ordinary* pushes requires ancestry, and
+ancestry exposes the component commits to every tool:
+- R1: root-level trees, wrong under plain rebase.
+- R3: travels only through CloneX (incomplete under plain transport).
+- R2: shifted reps travel *and* are benign under plain tools, at the cost
+  of the reconstruction layer.
+
+Pending the audit; owner question O4.
+
+**Still open:**
+- F7: retargeting a stack before GitHub's delete-on-merge closes the PR
+  needs something running at merge time: a bot or a server.
+- O1 (from the attack, and a better framing than §0): is the principle "no
+  names in history", or "semantics never *resolve* a name from history"?
+  Git's merge messages contain branch names harmlessly. This design meets
+  the stronger form. The weaker form would permit informative text.
