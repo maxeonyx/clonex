@@ -125,8 +125,13 @@ composition.
 - **K7 Everything travels by ordinary fetch/push through any Git host.**
   Extra state may only be extra refs, preferably only in composition repos.
   *(UC4, UC33, UC16)*
-- **K8 Determinism.** The same inputs give the same commits on every
-  machine. *(UC29, UC5 reproducibility)*
+- **K8 Determinism, not context-freedom.** The same inputs give the same
+  commits on every machine. "Inputs" include *where* a component commit is
+  adopted and which change-id links are present. Different inputs may give
+  different, content-equivalent commits. Lost links (metadata dropped by a
+  rewrite) degrade grouping, meaning one logical change appears as several
+  composition commits, never content. Reworded with the owner: "able to
+  produce the same commit, not always the same commit". *(UC29, UC5)*
 - **K9 Append-only by default.** Nothing ever *requires* rewriting
   published history on either side; private rewriting before publishing is
   fully supported. *(UC15, UC20; owner preference)*
