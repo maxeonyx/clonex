@@ -491,7 +491,15 @@ duplication wherever it can be done deterministically.** A separate user
 flow keeps history as minimal and pleasing as possible (cosmetic, not
 correctness).
 
-## S2b. Half-landed: trunc merged Max's change, dotsync hasn't yet (owner choice)
+## S2b. Half-landed: trunc merged Max's change, dotsync hasn't yet
+
+> **Reclassified after drawing the DAGs with the owner:** at level 1
+> (commits only) there is no problem. `ρ(t6)` has parents `U3` and `u`, is
+> "trunc = t6, dotsync = x_D", and maps down to real commits in both tools.
+> Everything below is about which umbrella commit a *label* (`main`)
+> should point at while dotsync's label hasn't moved. That is a
+> **level-2 (refs) question**, deferred with the other ref stories. The
+> timestep DAGs were drawn for the owner as an artifact page.
 
 Starting point: S2's single umbrella commit `u` (alias in trunc and dotsync,
 plus the checker) has been published. At 11:00 trunc's integration workflow
@@ -517,7 +525,7 @@ one of these must happen:
   copy of `x_T`, without `u`. This brings back duplicates, so an upstream
   revert can be undone by a later merge (the H2/G2 hazard).
 
-**Owner decision needed.**
+**Level-2 question, deferred.**
 
 ## S9. What the stories actually demand
 
