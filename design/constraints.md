@@ -109,14 +109,19 @@ composition.
   composition, and work leaving a composition builds on real component
   commits. *(UC13, UC14, UC15)*
 - **K4 One change, one composition commit.** A change across N components
-  is one composition commit, and it corresponds to one ordinary commit in
-  each touched component. *(UC1, UC18, UC24)*
+  is one composition commit, and it corresponds to one ordinary commit per
+  touched *occurrence*. Two copies of one tool on different bases need two
+  tool commits, so "per component" was impossible as first worded (found by
+  the R2′ attack). *(UC1, UC18, UC24)*
 - **K5 No canonical side.** Work originates in any repo and flows in both
   directions. *(UC11, UC12, UC17, UC18, UC22)*
 - **K6 Ordinary operations never make results silently wrong.** Merge,
   rebase, cherry-pick, squash, GitHub's merge button, jj rewrites, and
   upstream force-pushes, on either side. The worst allowed outcome is
-  "coarser" or "explicitly flagged". *(UC15, UC25–28)*
+  "coarser" or "explicitly flagged". A named residual: Git's own
+  cherry-pick/revert hazard. If a squash or a plain rebase drops CloneX's
+  publication marker, a later upstream revert of that change can be undone
+  by a merge, exactly as in plain Git. `status` detects it. *(UC15, UC25–28)*
 - **K7 Everything travels by ordinary fetch/push through any Git host.**
   Extra state may only be extra refs, preferably only in composition repos.
   *(UC4, UC33, UC16)*
@@ -235,7 +240,20 @@ CloneX merge engine.
 - `ρ(get_P(u),P) = u` for composition-made changes.
 - `get_P` is pure. `ρ` is pure given the composition's history.
 
-### Walking the use cases through R2′
+> **R2′ is refuted; see "R2″" below, which replaces it.** The walkthrough
+> that follows is kept as the record of what was believed. The attack
+> (`research/r2prime-attack.md`, reproduced with real Git) showed:
+> - the rule `ρ(get_P(u)) = u` mixes full composition trees into
+>   component-only lineages, so UC18 plus a plain `git merge` silently
+>   deletes the rest of the umbrella (F1);
+> - no alternative tree choice fixes it (F2);
+> - it contradicts Locality, so representatives depend on context (F4,
+>   breaking K8);
+> - verification that compares only trees lets a "representative" smuggle
+>   other changes (F5);
+> - a network fallback makes `get_P` impure (F6).
+
+### Walking the use cases through R2′ (refuted)
 
 - **UC1/UC4/UC18 (K4).** The alias change is one composition commit `u`.
   `get_T(u)` and `get_D(u)` are ordinary trunc and dotsync commits with
@@ -358,6 +376,49 @@ located with CloneX's own last-line rule, not Git's trailer parser.
   184/872 real commits (signatures, encodings). Failure is safe (fall back
   to fetch and check), but it costs a fetch, so the encoding must be made
   exact and tested on every real repo.
+
+### R2″: representatives depend only on the component (current candidate)
+
+The repair removes the rule that caused every failure above:
+- **`ρ(t, P)` is a pure function of `t`'s history and `P` alone.** Its
+  tree contains only `P`; its parents are the representatives of `t`'s
+  parents; its metadata is exact, plus the trailer. It is the same object
+  in every composition, on every machine (K8), including machines that
+  have never seen the component remote.
+- **A commit is a representative only if it is *byte-identical* to the
+  canonical `ρ` recomputed from the commit it claims.** That check is local
+  and needs no network (K12, and `get_P` stays pure). Anything else,
+  including a rebased copy or a copy with extra changes, is the
+  composition's own work: honest, and visible in `status`.
+- **The composition's own changes are never representatives.** When a
+  composition change `u` is published as tool commit `x = get_P(u)`, the
+  composition records it with a **marker merge**: parents are the
+  composition head and `ρ(x)`, and the tree is unchanged (an "ours" merge).
+  It says "our content already includes trunc's `x`". Later:
+  - GitHub's merge `m` of `x` has `ρ(m)` with parents `ρ(t_prev)` and
+    `ρ(x)`: a trunc-only lineage;
+  - `git merge ρ(m)` in U has a merge base containing `ρ(x)`, so it merges
+    cleanly, and an upstream *revert* of `x` is applied correctly (F8).
+- **Adoption is still just `git merge`** of a representative lineage, with
+  Git's and jj's own conflicts.
+
+Laws:
+- `get_P(ρ(t,P)) = t`, exactly;
+- `ρ` is context-free;
+- `get_P` is pure and offline.
+
+The costs, stated:
+- **Each published change appears twice** in the composition's `git log --
+  tools/trunc`: once as `u` (made here) and once as `ρ(x)` (trunc's copy),
+  joined by the marker. That is what a monorepo that upstreams patches
+  looks like. It is the price of K8, because a context-free copy can't *be*
+  `u`.
+- **Component-only representative states** stay unbuildable for plain
+  bisect (the K1×K8 trade-off, unchanged).
+
+Status: **R2″ has not yet had its own adversarial replay.** The attack's
+experiments suggest it fixes F1–F4, F7 and F8. Until it has been replayed
+against the whole reservoir, it is a candidate, not a result.
 
 ### Is anything *impossible*?
 
