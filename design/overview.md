@@ -1,5 +1,12 @@
 # CloneX design overview
 
+> **Superseded as the root by `constraints.md`** (2026-09-28): use cases →
+> constraints → a level-1 (objects-only) design, with refs deferred to a
+> separate level 2. Where this page disagrees, `constraints.md` wins. In
+> particular it replaces "squashed adoptions" with self-verifying
+> representatives, because the owner requires the composition to look like
+> a monorepo to Git (K1).
+
 The current design on one page, consolidated after three independent
 reviews:
 - `research/refs-workflows.md`: blind contributor and ref episodes;
