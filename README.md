@@ -17,4 +17,6 @@ clonex where <change>   # where a logical change appears
 ```
 
 Use jj (colocated) or plain Git for everything else. Design: `design/model.md`.
-Status: experimental, not yet released.
+
+`cx` is the recommended alias: `alias cx=clonex`.
+Status: **experimental** — a design under active search, not a tool to adopt yet.
