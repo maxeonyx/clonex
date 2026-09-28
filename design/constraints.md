@@ -420,17 +420,66 @@ Status: **R2″ has not yet had its own adversarial replay.** The attack's
 experiments suggest it fixes F1–F4, F7 and F8. Until it has been replayed
 against the whole reservoir, it is a candidate, not a result.
 
-### Is anything *impossible*?
+### R2″ under attack (`research/r2pp-attack.md`, real Git, 15 scenarios)
 
-**Claim:** no constraint in K1–K13 is violated by R2′; the costs above are
-degradations within the stated tolerance.
+It fixes every R2′ failure, and its laws hold. New findings:
+- **G1, structural.** A context-free representative's tree contains only
+  `P`, so, to Git's rename detection, everything else "appears" at it. If
+  U deleted a trunc file, Git's merge pairs that deletion with a similar
+  file in *dotsync*, and trunc's change lands in dotsync (rc=0).
+  `git revert` of a representative in U's log likewise undoes an unrelated
+  dotsync change. A monorepo, `-X no-renames` and jj all report a conflict
+  instead.
+  - CloneX's own adoption can avoid it (a P-only merge).
+  - A *plain* `git revert` or `cherry-pick` can't be fixed without local
+    config (breaks K7) or context-dependent trees (breaks K8).
+- **G2, structural.** The publication marker protects only branches that
+  contain it. A stacked branch, fork or colleague's clone holding `u`
+  without the marker silently undoes an upstream revert when it merges.
+- **G3–G9, repairable** (repairs demonstrated or specified):
+  - G3: a GitHub squash of a U PR creates a jump commit that bypasses the
+    ratchet; fixed by a dominance rule in `get_P`.
+  - G4: `jj rebase -b` duplicating `ρ(x)`; fixed by making representatives
+    immutable.
+  - G5: `jj abandon u` keeping u's trunc part.
+  - G6: nesting must compose shifts level by level.
+  - G7: a fixture inside its own tool's path.
+  - G8: rebased representatives can be decoded back to exact SHAs.
+  - G9: `get_P` needs an "unknown" result in shallow clones.
 
-**The one near-conflict is K1 × K8.** Intermediate representatives can't be
-both deterministic (K8) and full composition states (bisectable). Their
-tree would have to come from some composition context, which differs
-between compositions and adoption times. R2′ chooses determinism and pays
-with unbuildable intermediate states, which only affects plain,
-non-first-parent bisect. This is a real trade-off and is recorded as such.
+### Is anything *impossible*? — yes, strictly
+
+**Result: K1, K6 and K8, read strictly, cannot all hold.**
+1. K1 needs component commits in the composition's history as commits at
+   `P`.
+2. K8 needs those commits to be context-free.
+3. A context-free commit at `P` can only have a tree containing just `P`:
+   any other content would be context.
+4. Git's ordinary operations (merge, revert, cherry-pick, with rename
+   detection) treat such a commit as adding every other file, and can
+   silently move changes between components (G1). That contradicts K6.
+
+A marker-based repair can't close the gap either, because markers only
+protect branches that contain them (G2).
+
+**The ways out, each relaxing exactly one constraint:**
+- **A. Relax K6 to "never silently wrong under CloneX-aware operations".**
+  Plain `git revert`/`cherry-pick` of a component commit inside a
+  composition, and merging a branch that lacks its marker, are documented
+  hazards that `status` detects after the fact. This keeps the monorepo
+  look (K1) and determinism (K8).
+- **B. Relax K1: component commits are not in the composition's branch
+  history** (R3, squashed adoptions). Every plain Git/jj operation is safe
+  and determinism holds. Plain `git log`/`blame` in the composition are
+  coarse, and CloneX must supply component-level views. Plain transport
+  of component objects needs a fetch by SHA.
+- **C. Relax K8: representatives take their tree from composition
+  context.** The earlier R2′ attack showed context trees cause their own
+  silent damage (F1, F2), so this is not a real exit. Recorded to show it
+  was considered.
+
+This is a value judgment about the owner's workflows, not an engineering
+question. It is put to the owner with the cases above.
 
 ### Bonus: the original design's "compose from components"
 
