@@ -323,6 +323,20 @@ CloneX merge engine.
   travel in the composition's ordinary history, so no side refs are needed
   for objects (K7).
 
+**Correspondence is about state (from the reconstruction experiment).**
+After an amend or rebase, a representative's own object changes, but its
+tree at `P` usually doesn't. The fetched original then still matches, and
+`get_P` keeps answering `t`. That is intended: the claim says "the content
+here *is* trunc commit `t`", and that remains true. What the rewrite changed
+is only the composition's own history around it.
+
+If the rewrite moved the commit onto a base whose derivation already
+*descends* from `t`, then `get_P` reporting `t` is a content-true backwards
+step. Level 2 must refuse to publish it as a fast-forward. Feasibility is
+settled: a byte-exact encoding rebuilt **all 1,715 real tool commits** with
+0 failures (`research/reconstruction-experiment.md`). The trailer must be
+located with CloneX's own last-line rule, not Git's trailer parser.
+
 ### What R2′ still costs (not hidden)
 
 - **Unbuildable intermediate states.** Representatives of pure component
