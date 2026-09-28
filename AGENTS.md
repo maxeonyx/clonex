@@ -20,9 +20,18 @@ contexts). The owner wants:
 If CloneX has to own the client, it must be JJ-grade or better; it should not
 replace Git/jj needlessly. Agents are first-class users.
 
-## The model (current; confidence moderate-high for the core)
+## The model
 
-Read `design/model.md`, especially **§8, which overrides earlier sections**.
+**Start with `design/overview.md`, the current design.** The paragraph below
+and `src/` describe the *earlier* R1 design (verbatim component commits as
+merge parents). R1 was rejected by the audit (`design/research/beat-git-jj-audit.md`)
+in favour of squashed adoptions with transition claims (`<from>..<to>`),
+bound topics in the ref layer, and CloneX-owned cross-history read views.
+The code has not been updated, deliberately: the design is still being
+searched. Don't extend `src/` until the design settles. The laws and
+invariants below still hold as targets.
+
+Earlier model, for context (`design/model.md` §8):
 In one paragraph:
 
 A composition is an ordinary Git repo that *contains* component histories
