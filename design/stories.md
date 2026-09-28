@@ -566,8 +566,27 @@ generator refuses to draw a story that breaks the model's bookkeeping.
   remains. Discarding V is safe exactly when no V commit is the rep of an
   unpublished tool commit.
 
+- **S5 (ratchet flow), walked as S5, S5a, S5b, S5c. W11 is answered by
+  three rules, and nothing else is needed:**
+  1. A bot commit on your published commit comes back as a rep sitting
+     *directly on your own commit*, so no merge is needed, and the tool's
+     red → bot → green order holds by construction.
+  2. **A brought-in rep on top of a composition commit makes that commit
+     shared.** Rewriting it requires explicitly dropping the outside work
+     (`cx drop-above`, which lists what is dropped), never silently carrying
+     it along. jj enforces this if reps are immutable heads. Without that,
+     jj would rebase `ρ(b)` and publishing would push a forged bot commit.
+  3. **Staleness is detected by change-id supersession.** An incoming tool
+     commit whose rep would sit on a superseded version of one of our
+     changes is reported as stale and not brought in. Without a change-id
+     (plain-Git amend), the result is a loud add/add conflict, not silent
+     damage.
+
+  Fixing forward (S5a, the owner's append-only preference) needs none of
+  this.
+
 Still to walk: S14 (nesting); Max working in jj; a forged or mistaken
-claim.
+claim; DAG walks of S3, S6 and S7.
 
 ## S9. What the stories actually demand
 

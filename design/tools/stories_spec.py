@@ -13,6 +13,37 @@ TR = ("TR", "trunc repo")
 DS = ("DS", "dotsync repo")
 UM = ("UM", "umbrella repo")
 
+
+S5_START = [
+    {
+        "title": "Start",
+        "commits": [("TR", "t4", "t4"), ("UM", "U2", "U2")],
+        "rep": [("U2", "t4")],
+    },
+    {
+        "title": "Ada commits the red (test) change in the umbrella",
+        "cmds": ["ada$ git commit -m 'Add failing test for --config'   → r (changes tools/trunc/tests/)"],
+        "commits": [("UM", "r", "r (red)"), ("TR", "xr", "x_r")],
+        "edges": [("U2", "r"), ("t4", "xr")],
+        "made": [("r", "xr")],
+        "text": "Mapping r down gives x_r, parent t4. Publishing copies x_r to trunc; the DAG doesn't change.",
+    },
+    {
+        "title": "ratchet-bot commits b on x_r in trunc",
+        "cmds": ["ada$ gh workflow run ledger.yml --ref main -f target=13", "bot$ commit .test-status.json: pending   → b, parent x_r"],
+        "commits": [("TR", "b", "b (bot)")],
+        "edges": [("xr", "b")],
+    },
+    {
+        "title": "Ada brings b in; its rep sits directly on her own commit r",
+        "cmds": ["ada$ cx fetch trunc   → ρ(b): parent r (the rep of x_r), tree = r's with tools/trunc := b"],
+        "commits": [("UM", "r_b", "ρ(b)")],
+        "edges": [("r", "r_b")],
+        "rep": [("r_b", "b")],
+        "text": "ρ(b) descends from r, so Ada's line simply continues from ρ(b). No merge is needed. From now on r has someone else's work on top of it: it is <em>shared</em>.",
+    },
+]
+
 STORIES = [
     {
         "id": "S2b",
@@ -305,5 +336,98 @@ STORIES = [
             },
         ],
         "conclusion": "throwaway compositions work unchanged, except that the very first reps have partial trees (a documented residual). Safe to discard V is a checkable property: no V commit is the rep of an unpublished tool commit.",
+    },
+    {
+        "id": "S5",
+        "title": "Ratchet flow: red, bot, green",
+        "repos": [TR, UM],
+        "compositions": ["UM"],
+        "setup": "Ada adds a test and then the implementation from the umbrella. trunc's ratchet needs red, then the bot's ledger commit, then green, in trunc's own history.",
+        "steps": S5_START + [
+            {
+                "title": "Ada commits green on top of ρ(b)",
+                "cmds": ["ada$ git commit -m 'Implement --config'   → g (parent ρ(b))"],
+                "commits": [("UM", "g", "g (green)"), ("TR", "xg", "x_g")],
+                "edges": [("r_b", "g"), ("b", "xg")],
+                "made": [("g", "xg")],
+                "verdict": "trunc's history is x_r → b → x_g: red, bot, green, exactly as the ratchet requires. The bot records passing next, and it arrives the same way b did.",
+            },
+        ],
+        "conclusion": "a bot commit on your published commit comes back as a rep sitting directly on your own commit, with no merge needed. The order in the tool is preserved by construction.",
+    },
+    {
+        "id": "S5a",
+        "title": "Reviewer asks for a test change: fix forward",
+        "repos": [TR, UM],
+        "compositions": ["UM"],
+        "setup": "After step 3 of S5, the reviewer asks for a change to the test. Ada fixes it with a new commit (append-only).",
+        "steps": S5_START + [
+            {
+                "title": "Ada commits the test fix on top of ρ(b)",
+                "cmds": ["ada$ git commit -m 'Tighten the --config test'   → r2 (parent ρ(b))"],
+                "commits": [("UM", "r2", "r2"), ("TR", "xr2", "x_r2")],
+                "edges": [("r_b", "r2"), ("b", "xr2")],
+                "made": [("r2", "xr2")],
+                "verdict": "Nothing special. trunc gets x_r → b → x_r2, the bot runs again on top, and the flow continues. This is the path that needs no machinery.",
+            },
+        ],
+        "conclusion": "append-only fixes after outside work has built on yours need nothing new.",
+    },
+    {
+        "id": "S5b",
+        "title": "Reviewer asks for a test change: amend",
+        "repos": [TR, UM],
+        "compositions": ["UM"],
+        "setup": "After step 3 of S5, Ada wants to amend r itself rather than add a commit.",
+        "steps": S5_START + [
+            {
+                "title": "jj refuses: r has outside work on top",
+                "cmds": ["ada$ jj squash --into r   (with the edited test)", "Error: Commit ρ(b) is immutable  (reps are immutable heads, so r, its ancestor, is too)"],
+                "text": "The DAG doesn't change.",
+                "hazard": "Without that refusal, jj would rebase ρ(b) onto the amended r. The result would be a commit authored by the bot, recording a ledger for a test the bot never saw. Mapped down, it is not b, so publishing would push a forged bot commit into trunc. The refusal is what makes the choice explicit.",
+            },
+            {
+                "title": "Ada explicitly drops the outside work above r, then amends",
+                "cmds": ["ada$ cx drop-above r    (abandons ρ(b); CloneX lists what's dropped: trunc b, by ratchet-bot)", "ada$ jj squash --into r   → r′"],
+                "commits": [("UM", "r2", "r′"), ("TR", "xr2", "x_r′")],
+                "edges": [("U2", "r2"), ("t4", "xr2")],
+                "made": [("r2", "xr2")],
+                "dim": ["r", "r_b", "xr", "b"],
+                "text": "r′ has the same jj change-id as r, so CloneX knows it supersedes r. In trunc, x_r and b are now stale, and publishing replaces them. That is the force-update of the PR branch Ada would do today.",
+            },
+            {
+                "title": "The bot reruns on x_r′; Ada brings it in",
+                "cmds": ["ada$ cx publish && gh workflow run ledger.yml ...", "bot$ → b′ on x_r′", "ada$ cx fetch trunc   → ρ(b′) on r′"],
+                "commits": [("TR", "b2", "b′ (bot)"), ("UM", "r_b2", "ρ(b′)")],
+                "edges": [("xr2", "b2"), ("r2", "r_b2")],
+                "rep": [("r_b2", "b2")],
+                "verdict": "Same outcome as today's plain-Git flow (force-push, redispatch), but CloneX made the drop explicit and listed the bot commit being discarded.",
+            },
+        ],
+        "conclusion": "a brought-in rep on top of your commit makes that commit shared. Rewriting it means explicitly dropping the outside work, never silently carrying it along. jj immutability of reps enforces this; <code>cx</code> provides the explicit drop.",
+    },
+    {
+        "id": "S5c",
+        "title": "Amended before the bot commit was brought in",
+        "repos": [TR, UM],
+        "compositions": ["UM"],
+        "setup": "Ada amends r to r′ before she has brought in the bot's b. Then she runs <code>cx fetch</code>.",
+        "steps": S5_START[:3] + [
+            {
+                "title": "Ada amends r to r′ (nothing sits on r yet in the umbrella)",
+                "cmds": ["ada$ jj squash --into r   → r′ (same change-id)"],
+                "commits": [("UM", "r2", "r′"), ("TR", "xr2", "x_r′")],
+                "edges": [("U2", "r2"), ("t4", "xr2")],
+                "made": [("r2", "xr2")],
+                "dim": ["r"],
+            },
+            {
+                "title": "Fetching finds b, built on a superseded version of Ada's change",
+                "cmds": ["ada$ cx fetch trunc", "stale: trunc b (ratchet-bot) was built on x_r, the old version of your change r′; not bringing it in"],
+                "dim": ["xr", "b"],
+                "verdict": "CloneX recognises staleness through the change-id (r and r′ are one change), so it doesn't create ρ(b) or offer a merge. Without a change-id (a plain-Git amend), bringing b in would give an add/add conflict on the test file: loud, not silent.",
+            },
+        ],
+        "conclusion": "staleness is detected when a brought-in commit's rep would sit on a composition commit that a newer version of the same change has superseded.",
     },
 ]
