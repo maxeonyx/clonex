@@ -527,7 +527,7 @@ one of these must happen:
 
 **Level-2 question, deferred.**
 
-## DAG walkthroughs (S2b, S10–S13, S15, S17)
+## DAG walkthroughs
 
 Walked one event at a time in `design/story-dags.html`, generated from
 `design/tools/stories_spec.py` by `design/tools/storydags.py`. The
@@ -585,8 +585,45 @@ generator refuses to draw a story that breaks the model's bookkeeping.
   Fixing forward (S5a, the owner's append-only preference) needs none of
   this.
 
-Still to walk: S14 (nesting); Max working in jj; a forged or mistaken
-claim; DAG walks of S3, S6 and S7.
+- **S3 (Bob's rename while Ada works from the umbrella):** Bob's b1 comes
+  in as its own rep on d4's rep, beside Ada's work, and joins it by an
+  ordinary merge. The textual merge is clean and the break shows up in the
+  umbrella, where Ada fixes it. The merge maps down to dotsync's ordinary
+  "merge main into my branch" commit. When dotsync merges her PR, its rep
+  is a child of Ada's fix, so her line just moves forward. Bob sees only
+  the PR.
+- **S6 (two copies of tdd-ratchet):** each copy is an *occurrence*, and
+  reps are per tool commit per occurrence. One umbrella commit is the rep
+  of two tdd-ratchet commits, one per occurrence (the CVE fix on the
+  current line and the backport on v1.1.6). Adding an occurrence builds
+  reps for its history on the commit it is added to, as conversion does;
+  the cost is one umbrella commit per tool commit up to the frozen point.
+  Git's rename detection doesn't pair the copies, because neither path is
+  deleted. Which label a frozen copy follows is level 2.
+- **S7 (tb's history rewritten):** the new history comes in as new reps
+  built on the last shared rep, beside the old ones. One merge joins them,
+  and it must:
+  1. use the *replaced* commit (e3) as the base for the tool's path, not
+     the DAG merge base, or it conflicts in the ledger, a file the umbrella
+     never touched;
+  2. record `Clonex-Supersedes: tools/tb e3 e3′` in the merge, or the lens
+     maps it to a new tool merge of old and new history and publishing
+     puts the bad history back.
+
+  Which commit replaces which comes from how tb's label moved (level 2);
+  at level 1 it is an input.
+- **S7a (Ada's tb work in flight during the rewrite), candidate rule:** a
+  tool commit built on a superseded commit is regenerated on its
+  replacement when mapped through a merge that carries the Supersedes
+  record, with the original message and author, as jj rebases the
+  descendants of a rewritten commit. Ada's PR branch is then updated to
+  the regenerated commit, replacing only her own commit. The alternative
+  mapping would carry the old history back into tb through her PR.
+
+Still to walk:
+- S14 (nesting);
+- Max working in jj;
+- a forged or mistaken claim, including a wrong `Clonex-Supersedes`.
 
 ## S9. What the stories actually demand
 

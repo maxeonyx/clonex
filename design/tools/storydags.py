@@ -15,11 +15,24 @@ Conventions (see AGENTS.md):
   "made" marks a rep the tool commit was derived from (W14), "rep" one
   brought in from outside (must be built on its tool parents' reps)
 - grey = no longer reachable from any line anyone is working on
+- is/rep/made entries are (composition commit, tool commit) or, when one
+  tool appears at two paths, (composition commit, tool commit, occurrence)
 """
 import html
 import sys
 
 from stories_spec import STORIES
+
+
+def occ(line, repo_of):
+    """The occurrence (tool copy) a line talks about: explicit, else the tool repo."""
+    return line[2] if len(line) > 2 else repo_of[line[1]]
+
+
+def link(kind, line):
+    text = kind if len(line) < 3 else f"{kind} @{line[2]}"
+    style = "===" if kind == "rep" else "-.-"
+    return f'  {line[0]} {style}|"{text}"| {line[1]}'
 
 
 def mermaid(story, upto):
@@ -35,18 +48,18 @@ def mermaid(story, upto):
         dim |= set(step.get("dim", []))
     out = ["flowchart LR"]
     for repo, title in repos:
-        out.append(f"  subgraph {repo}[{title}]")
+        out.append(f'  subgraph {repo}["{title}"]')
         for nid, label in nodes[repo]:
             out.append(f'    {nid}(("{label}"))')
         out.append("  end")
     for a, b in edges:
         out.append(f"  {a} --> {b}")
     reps = set(rep_lines)
-    for a, b in rep_lines:
-        out.append(f"  {a} == rep === {b}")
-    for a, b in is_lines:
-        if (a, b) not in reps:
-            out.append(f"  {a} -. is .- {b}")
+    for line in rep_lines:
+        out.append(link("rep", line))
+    for line in is_lines:
+        if line not in reps:
+            out.append(link("is", line))
     for repo, _ in repos:
         out.append(f"  style {repo} fill:none,stroke-dasharray: 6 4")
     if dim:
@@ -57,7 +70,8 @@ def mermaid(story, upto):
 
 def table(story, upto):
     labels, is_map, order, comp_repos = {}, {}, [], set(story.get("compositions", []))
-    tool_repos = [r for r, _ in story["repos"] if r not in comp_repos]
+    titles = dict(story["repos"])
+    columns = {r: titles[r] for r, _ in story["repos"] if r not in comp_repos}
     repo_of = {}
     for step in story["steps"][: upto + 1]:
         for repo, nid, label in step.get("commits", []):
@@ -65,12 +79,16 @@ def table(story, upto):
             repo_of[nid] = repo
             if repo in comp_repos:
                 order.append(nid)
-        for a, b in step.get("is", []) + step.get("rep", []) + step.get("made", []):
-            is_map.setdefault(a, {})[repo_of[b]] = labels[b]
+        for line in step.get("is", []) + step.get("rep", []) + step.get("made", []):
+            o = occ(line, repo_of)
+            if o not in columns:
+                columns.pop(repo_of[line[1]], None)
+                columns[o] = f"{titles[repo_of[line[1]]]} @{o}"
+            is_map.setdefault(line[0], {})[o] = labels[line[1]]
     if not order:
         return ""
-    titles = dict(story["repos"])
-    head = "".join(f"<th>{html.escape(titles[r])} is</th>" for r in tool_repos)
+    tool_repos = list(columns)
+    head = "".join(f"<th>{html.escape(columns[r])} is</th>" for r in tool_repos)
     rows = []
     for nid in order:
         cells = "".join(
@@ -119,29 +137,32 @@ def check(story):
             assert a in repo_of and b in repo_of, f"{where}: edge {a}->{b} names a missing commit"
             assert repo_of[a] == repo_of[b], f"{where}: parent edge {a}->{b} crosses repositories"
         for kind in ("is", "rep", "made"):
-            for a, b in step.get(kind, []):
+            for line in step.get(kind, []):
+                a, b = line[:2]
                 assert a in repo_of and b in repo_of, f"{where}: {kind} {a}-{b} names a missing commit"
                 assert repo_of[a] in comps and repo_of[b] not in comps, f"{where}: {kind} must go composition -> tool"
-                prev = is_of.get((a, repo_of[b]))
-                assert prev in (None, b), f"{where}: {a} is both {prev} and {b} in {repo_of[b]}"
-                is_of[(a, repo_of[b])] = b
+                o = occ(line, repo_of)
+                prev = is_of.get((a, o))
+                assert prev in (None, b), f"{where}: {a} is both {prev} and {b} at {o}"
+                is_of[(a, o)] = b
         for kind in ("rep", "made"):
-            for a, b in step.get(kind, []):
-                assert b not in reps, f"{where}: {b} has two reps ({reps[b][0]}, {a})"
-                reps[b] = (a, kind)
+            for line in step.get(kind, []):
+                key = (line[1], occ(line, repo_of))
+                assert key not in reps, f"{where}: {key} has two reps ({reps[key][0]}, {line[0]})"
+                reps[key] = (line[0], kind)
         edges_so_far = [e for st in story["steps"][: i + 1] for e in st.get("edges", [])]
-        for b, (a, kind) in reps.items():  # a is the rep of tool commit b
+        for (b, o), (a, kind) in reps.items():  # a is the rep of tool commit b at occurrence o
             tool_parents = [p for p, c in edges_so_far if c == b]
             comp_parents = [p for p, c in edges_so_far if c == a]
             for tp in tool_parents:
-                if kind == "rep" and tp in reps:
+                if kind == "rep" and (tp, o) in reps:
                     # Brought in: built on the rep of each tool parent (C″).
-                    assert reps[tp][0] in comp_parents, (
-                        f"{where}: rep {a} of {b} is not built on {tp}'s rep {reps[tp][0]}"
+                    assert reps[(tp, o)][0] in comp_parents, (
+                        f"{where}: rep {a} of {b} is not built on {tp}'s rep {reps[(tp, o)][0]}"
                     )
                 else:
                     # Made here (or parent's rep not drawn): some parent must BE the tool parent.
-                    assert any(is_of.get((cp, repo_of[b])) == tp for cp in comp_parents), (
+                    assert any(is_of.get((cp, o)) == tp for cp in comp_parents), (
                         f"{where}: {a} (rep of {b}) has no parent that is {b}'s parent {tp}"
                     )
 
