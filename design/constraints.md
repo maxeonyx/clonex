@@ -1,5 +1,12 @@
 # Use cases, constraints, and a design that satisfies them
 
+> **Suspended (2026-09-28).** The root is now `stories.md`: concrete people,
+> machines, commands and repository states. This file's K-list was a
+> compression that got ahead of its stories. In particular, K1 as written
+> is demanded by no story (see `stories.md` §S9). Keep it only as a record
+> of the search, until each constraint here has been re-derived from a
+> story or deleted.
+
 This is the root of the design. **Use cases** are the external truth; each
 one is concrete and drawn from the Agent Tools ecosystem or the owner's
 stated goals. **Constraints** are derived from use cases, and each one cites
