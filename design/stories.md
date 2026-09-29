@@ -646,10 +646,23 @@ in two kinds:
   the regenerated commit, replacing only her own commit. The alternative
   mapping would carry the old history back into tb through her PR.
 
+- **S18 (Eve forges a rep):** a rep can't lie, because it can be
+  recomputed. A brought-in rep is a function of the tool commit and its
+  parents' reps; a derived one is given by π. So a commit that claims to
+  stand for T_5 but differs from it is just an ordinary commit, and
+  `cx status` says how it differs. A forged author is what plain Git
+  already allows, and the tool's review sees the diff.
+- **S18a (a wrong replacement record):** the replacement record is the only
+  claim CloneX can't recompute. It must be checked against the tool repo
+  when it is made and on `cx status` (a level-2 check: is the replaced
+  commit still on the tool's labels?), and shown wherever it changes a
+  mapping. A wrong one is visible in the merge's own diff and can't remove
+  anything from the tool, because publishing only adds.
+
 Still to walk:
+- correcting a wrong replacement record, append-only;
 - S14 (nesting);
-- Max working in jj;
-- a forged or mistaken claim, including a wrong replacement record.
+- Max working in jj.
 
 ## S9. What the stories actually demand
 
