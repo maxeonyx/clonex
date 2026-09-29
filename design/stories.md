@@ -570,10 +570,15 @@ in two kinds:
 - **S10:** two people bringing in the same commit create the identical
   rep. Bringing in is two explicit steps: create the rep (like a fetch),
   then an ordinary merge.
-- **S11:** plain `git rebase` copies a rep (ρ_U(T_5)′), producing a
-  duplicate and bringing back the revert hazard. Reps must be immutable in
-  jj, `cx status` must detect copies, and the repair is to move only one's
-  own commits and keep the merge.
+- **S11, S11a (checked on a real repository):** plain `git rebase U_3b`
+  from Ada's merge drops the merge and copies every commit U_3b lacks,
+  including the rep: ρ_U(T_5)′, with Jim as author and Ada as committer.
+  `--rebase-merges` keeps the merge but still copies the rep. The copy is a
+  duplicate, which brings back the revert hazard. `jj rebase -s U_3a -d
+  U_3b` moves only Ada's commit and her merge, and the merge keeps the very
+  same ρ_U(T_5). So reps must be immutable in jj, `cx status` must detect
+  copies, and the safe move is to move only one's own commits and keep the
+  merge.
 - **S12:** a GitHub squash of an umbrella PR hides a rep inside a new
   commit. CloneX must still prove it *is* T_5 (its record plus content), so
   it never publishes a false copy. Merge-commit-only avoids the duplicate.

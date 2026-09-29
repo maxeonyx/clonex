@@ -27,6 +27,14 @@ import sys
 
 from stories_spec import STORIES
 
+# Per-step highlights: class -> (colour, legend text).
+COLOURS = {
+    "picked": ("#e8a317", "selected to be copied"),
+    "copy": ("#e8a317", "a new copy (new SHA)"),
+    "dropped": ("#d64545", "dropped"),
+    "kept": ("#2e9d5b", "not touched"),
+}
+
 SUB = re.compile(r"(?<![A-Za-z])([A-Zρπ][0-9]?)_([0-9A-Za-z.]+)")
 
 
@@ -49,6 +57,14 @@ def state(story, upto):
         rep_lines += step.get("rep", []) + step.get("made", [])
         dim |= set(step.get("dim", []))
     return commits, edges, is_lines, rep_lines, dim
+
+
+def legend(step):
+    items = [
+        f"<span><i style='border-color:{COLOURS[c][0]}'></i>{fmt(', '.join(html.escape(n) for n in names))}: {COLOURS[c][1]}</span>"
+        for c, names in step.get("colours", {}).items()
+    ]
+    return f"<p class='legend'>{''.join(items)}</p>" if items else ""
 
 
 def mermaid(story, upto):
@@ -74,36 +90,16 @@ def mermaid(story, upto):
     out += [link("is", line) for line in is_lines if line not in rep_lines]
     for repo, _ in story["repos"]:
         out.append(f"  style {repo} fill:none,stroke-dasharray: 6 4")
+    for cls, names in story["steps"][upto].get("colours", {}).items():
+        colour = COLOURS[cls][0]
+        dash = ",stroke-dasharray: 5 3" if cls == "dropped" else ""
+        fill = f",fill:{colour}44" if cls == "copy" else ""
+        out.append(f"  classDef {cls} stroke:{colour},stroke-width:4px{dash}{fill}")
+        out.append(f"  class {','.join(ids[n] for n in names)} {cls}")
     if dim:
         out.append("  classDef dim opacity:0.35")
         out.append("  class " + ",".join(sorted(ids[d] for d in dim)) + " dim")
     return "\n".join(out)
-
-
-def table(story, upto):
-    commits, _, is_lines, rep_lines, _ = state(story, upto)
-    comps = set(story["compositions"])
-    repo_of = {c[1]: c[0] for c in commits}
-    titles = dict(story["repos"])
-    columns = {r: f"{r} · {t}" for r, t in story["repos"] if r not in comps}
-    is_map = {}
-    for line in is_lines + rep_lines:
-        o = occ(line, repo_of)
-        if o not in columns:
-            columns.pop(repo_of[line[1]], None)
-            columns[o] = f"{titles[repo_of[line[1]]]} @{o}"
-        is_map.setdefault(line[0], {})[o] = line[1]
-    order = [c[1] for c in commits if c[0] in comps]
-    if not order:
-        return ""
-    head = "".join(f"<th>π to {html.escape(t)}</th>" for t in columns.values())
-    rows = "".join(
-        f"<tr><td>{fmt(html.escape(n))}</td>"
-        + "".join(f"<td>{fmt(html.escape(is_map.get(n, {}).get(o, '—')))}</td>" for o in columns)
-        + "</tr>"
-        for n in order
-    )
-    return f'<div class="tablewrap"><table><tr><th>composition commit</th>{head}</tr>{rows}</table></div>'
 
 
 CSS = """
@@ -120,8 +116,8 @@ nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem}nav a{color:var(--
 section{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:16px;display:grid;gap:10px}
 .step{font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
 pre.cmd{font-family:var(--mono);font-size:.85rem;background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:8px 10px;margin:0;overflow-x:auto;white-space:pre}
-.diagram,.tablewrap{overflow-x:auto}
-table{border-collapse:collapse;font-size:.88rem}th,td{text-align:left;padding:3px 14px 3px 0;border-bottom:1px solid var(--rule)}th{color:var(--muted);font-weight:600}
+.diagram{overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.88rem;color:var(--muted)}.legend i{display:inline-block;width:12px;height:12px;border:3px solid;border-radius:50%;margin-right:6px;vertical-align:-2px}
 .verdict{border-left:3px solid var(--ok);padding-left:12px}.hazard{border-left:3px solid var(--warn);padding-left:12px}
 """
 
@@ -147,8 +143,8 @@ def check(story):
         for a, b in step.get("edges", []):
             assert a in repo_of and b in repo_of, f"{where}: edge {a}->{b} names a missing commit"
             assert repo_of[a] == repo_of[b], f"{where}: parent edge {a}->{b} crosses repositories"
-        for d in step.get("dim", []):
-            assert d in repo_of, f"{where}: dims missing commit {d}"
+        for d in step.get("dim", []) + [n for ns in step.get("colours", {}).values() for n in ns]:
+            assert d in repo_of, f"{where}: dims or colours missing commit {d}"
         for kind in ("is", "rep", "made"):
             for line in step.get(kind, []):
                 a, b = line[:2]
@@ -204,7 +200,7 @@ def render():
             if step.get("text"):
                 parts.append(f"<p>{fmt(step['text'])}</p>")
             parts.append(f"<div class='diagram'><pre class='mermaid'>\n{mermaid(s, i)}\n</pre></div>")
-            parts.append(table(s, i))
+            parts.append(legend(step))
             for key in ("verdict", "hazard"):
                 if step.get(key):
                     parts.append(f"<p class='{key}'>{fmt(step[key])}</p>")

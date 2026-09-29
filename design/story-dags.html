@@ -13,8 +13,8 @@ nav{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.92rem}nav a{color:var(--
 section{background:var(--card);border:1px solid var(--rule);border-radius:8px;padding:16px;display:grid;gap:10px}
 .step{font-family:var(--mono);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
 pre.cmd{font-family:var(--mono);font-size:.85rem;background:var(--bg);border:1px solid var(--rule);border-radius:6px;padding:8px 10px;margin:0;overflow-x:auto;white-space:pre}
-.diagram,.tablewrap{overflow-x:auto}
-table{border-collapse:collapse;font-size:.88rem}th,td{text-align:left;padding:3px 14px 3px 0;border-bottom:1px solid var(--rule)}th{color:var(--muted);font-weight:600}
+.diagram{overflow-x:auto}
+.legend{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:.88rem;color:var(--muted)}.legend i{display:inline-block;width:12px;height:12px;border:3px solid;border-radius:50%;margin-right:6px;vertical-align:-2px}
 .verdict{border-left:3px solid var(--ok);padding-left:12px}.hazard{border-left:3px solid var(--warn);padding-left:12px}
 </style>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -29,7 +29,7 @@ table{border-collapse:collapse;font-size:.88rem}th,td{text-align:left;padding:3p
 <span>dotted <b>is</b> = π: mapping this umbrella commit down gives that tool commit · thick <b>is · rep</b> = π, and ρ back: this is <em>the</em> umbrella commit for that tool commit</span>
 <span>a tool in two places has occurrences R1, R2, written π<sub>R2</sub> and ρ<sub>U.R2</sub> · faded = no longer part of any line of work</span>
 </div>
-<nav><a href='#S2b'>S2b Half-landed cross-tool change</a><a href='#S10'>S10 Ada and Max bring in the same commit</a><a href='#S11'>S11 Ada rebases with plain Git</a><a href='#S12'>S12 GitHub squash-merges an umbrella PR</a><a href='#S13'>S13 Extract crates/standards into its own repo</a><a href='#S15'>S15 Convert a submodule umbrella</a><a href='#S17'>S17 A throwaway composition for an agent</a><a href='#S5'>S5 Ratchet flow: red, bot, green</a><a href='#S5a'>S5a Reviewer asks for a test change: fix forward</a><a href='#S5b'>S5b Reviewer asks for a test change: amend</a><a href='#S5c'>S5c Amended before the bot commit was brought in</a><a href='#S3'>S3 Bob renames a function in dotsync while Ada uses it from the umbrella</a><a href='#S6'>S6 Two copies of tdd-ratchet, one CVE fix</a><a href='#S7'>S7 tb&#x27;s history is rewritten (the ledger repair)</a><a href='#S7a'>S7a Ada had tb work in flight during the rewrite</a></nav></header>
+<nav><a href='#S2b'>S2b Half-landed cross-tool change</a><a href='#S10'>S10 Ada and Max bring in the same commit</a><a href='#S11'>S11 Ada rebases with plain Git</a><a href='#S11a'>S11a The same move, done right</a><a href='#S12'>S12 GitHub squash-merges an umbrella PR</a><a href='#S13'>S13 Extract crates/standards into its own repo</a><a href='#S15'>S15 Convert a submodule umbrella</a><a href='#S17'>S17 A throwaway composition for an agent</a><a href='#S5'>S5 Ratchet flow: red, bot, green</a><a href='#S5a'>S5a Reviewer asks for a test change: fix forward</a><a href='#S5b'>S5b Reviewer asks for a test change: amend</a><a href='#S5c'>S5c Amended before the bot commit was brought in</a><a href='#S3'>S3 Bob renames a function in dotsync while Ada uses it from the umbrella</a><a href='#S6'>S6 Two copies of tdd-ratchet, one CVE fix</a><a href='#S7'>S7 tb&#x27;s history is rewritten (the ledger repair)</a><a href='#S7a'>S7a Ada had tb work in flight during the rewrite</a></nav></header>
 <h2 id='S2b'>S2b · Half-landed cross-tool change</h2>
 <p>Max makes one umbrella commit U<sub>4</sub> that changes trunc and dotsync. trunc merges its part first; dotsync later.</p>
 <section>
@@ -52,7 +52,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>3</sub></td><td>T<sub>4</sub></td><td>D<sub>2</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Max commits U<sub>4</sub>; it is the rep of two tool commits</h3>
@@ -83,7 +83,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>3</sub></td><td>T<sub>4</sub></td><td>D<sub>2</sub></td></tr><tr><td>U<sub>4</sub></td><td>π<sub>T</sub>(U<sub>4</sub>)</td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>trunc merges its part (T<sub>5</sub>); its rep ρ<sub>U</sub>(T<sub>5</sub>) is created</h3>
@@ -122,7 +122,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>3</sub></td><td>T<sub>4</sub></td><td>D<sub>2</sub></td></tr><tr><td>U<sub>4</sub></td><td>π<sub>T</sub>(U<sub>4</sub>)</td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr></table></div>
+
 <p class='verdict'>ρ<sub>U</sub>(T<sub>5</sub>)'s parents are the reps of T<sub>5</sub>'s parents: U<sub>3</sub> (for T<sub>4</sub>) and U<sub>4</sub> (for π<sub>T</sub>(U<sub>4</sub>)). Its tree outside trunc is Git's merge of U<sub>3</sub> and U<sub>4</sub>, which is U<sub>4</sub>'s. So it contains all of U<sub>4.</sub> That's consistent: it <em>is</em> π<sub>D</sub>(U<sub>4</sub>) in dotsync. Whether a label should point here is level 2.</p>
 </section>
 <section>
@@ -168,7 +168,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>3</sub></td><td>T<sub>4</sub></td><td>D<sub>2</sub></td></tr><tr><td>U<sub>4</sub></td><td>π<sub>T</sub>(U<sub>4</sub>)</td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>6</sub>)</td><td>T<sub>6</sub></td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>dotsync merges its part (D<sub>3</sub>); the umbrella now has two divergent lines</h3>
@@ -221,7 +221,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>3</sub></td><td>T<sub>4</sub></td><td>D<sub>2</sub></td></tr><tr><td>U<sub>4</sub></td><td>π<sub>T</sub>(U<sub>4</sub>)</td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>6</sub>)</td><td>T<sub>6</sub></td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr><tr><td>ρ<sub>U</sub>(D<sub>3</sub>)</td><td>π<sub>T</sub>(U<sub>4</sub>)</td><td>D<sub>3</sub></td></tr></table></div>
+
 <p class='verdict'>Nothing joins ρ<sub>U</sub>(T<sub>6</sub>) and ρ<sub>U</sub>(D<sub>3</sub>) yet. No umbrella commit contains both tools' latest. That's normal divergence, and every commit is still one real commit of each tool.</p>
 </section>
 <section>
@@ -279,7 +279,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>3</sub></td><td>T<sub>4</sub></td><td>D<sub>2</sub></td></tr><tr><td>U<sub>4</sub></td><td>π<sub>T</sub>(U<sub>4</sub>)</td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>6</sub>)</td><td>T<sub>6</sub></td><td>π<sub>D</sub>(U<sub>4</sub>)</td></tr><tr><td>ρ<sub>U</sub>(D<sub>3</sub>)</td><td>π<sub>T</sub>(U<sub>4</sub>)</td><td>D<sub>3</sub></td></tr><tr><td>U<sub>5</sub></td><td>T<sub>6</sub></td><td>D<sub>3</sub></td></tr></table></div>
+
 <p class='verdict'>Clean: the shared ancestor is U<sub>4</sub>, and each side changed a different tool since then.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> every tool commit gets exactly one rep; a rep's parents are its tool parents' reps; the umbrella never follows a tool implicitly. Its commits join by explicit merges.</p>
@@ -306,7 +306,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Jim&#x27;s fix T<sub>5</sub> lands on trunc</h3>
@@ -330,7 +330,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>Ada&#x27;s machine creates T<sub>5</sub>&#x27;s rep</h3>
@@ -358,7 +358,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Ada merges it explicitly</h3>
@@ -390,7 +390,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4a</sub></td><td>T<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>Max&#x27;s machine creates T<sub>5</sub>&#x27;s rep: the identical object, so no new commit</h3>
@@ -423,7 +423,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4a</sub></td><td>T<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 5</div><h3>Max merges it explicitly</h3>
@@ -459,7 +459,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4a</sub></td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4b</sub></td><td>T<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 6</div><h3>Their lines are merged</h3>
@@ -499,12 +499,12 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4a</sub></td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4b</sub></td><td>T<sub>5</sub></td></tr><tr><td>U<sub>5</sub></td><td>T<sub>5</sub></td></tr></table></div>
+
 <p class='verdict'>The shared ancestor includes ρ<sub>U</sub>(T<sub>5</sub>), so Jim's fix is one commit in the umbrella's history. A later trunc revert of T<sub>5</sub> merges correctly (the duplicate hazard can't arise).</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> a rep is a function of the tool commit and its parents' reps only, so every machine creates the same one. Bringing in is create-rep, then explicit merge.</p>
 <h2 id='S11'>S11 · Ada rebases with plain Git</h2>
-<p>Continuing S10 before step 5. Ada wants her work on top of Max's U<sub>3b</sub> instead of U<sub>2</sub>, and runs plain <code>git rebase</code>.</p>
+<p>Continuing S10 before Max merges. Ada's line is U<sub>3a</sub> (her README change) and U<sub>4a</sub>, her merge of ρ<sub>U</sub>(T<sub>5</sub>). Max's line is U<sub>3b.</sub> Ada wants her work on top of Max's, and runs plain <code>git rebase U<sub>3b</sub></code>. Each step below is one thing Git does; it was checked against a real repository with this history (git 2.55).</p>
 <section>
 <div class='step'>Step 0</div><h3>Start</h3>
 <div class='diagram'><pre class='mermaid'>
@@ -518,7 +518,7 @@ flowchart LR
     n3(("U<sub>3a</sub><br><small>Ada</small>"))
     n4(("U<sub>3b</sub><br><small>Max</small>"))
     n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
-    n6(("U<sub>4a</sub>"))
+    n6(("U<sub>4a</sub><br><small>Ada&#x27;s merge</small>"))
   end
   n0 --> n1
   n2 --> n3
@@ -534,11 +534,16 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4a</sub></td><td>T<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
-<div class='step'>Step 1</div><h3>git rebase U<sub>3b</sub> replays U<sub>3a</sub> and ρ<sub>U</sub>(T<sub>5</sub>) as new commits (the merge is dropped)</h3>
-<pre class='cmd'>ada$ git rebase U<sub>3b</sub>   (from U<sub>4a</sub>)</pre>
+<div class='step'>Step 1</div><h3>Git lists the commits to move, and drops the merge</h3>
+<pre class='cmd'>ada$ git rebase U<sub>3b</sub>      (Ada is on U<sub>4a</sub>)
+
+the list Git builds (what `git rebase -i` would show):
+pick U<sub>3a</sub>         Update README
+pick ρ<sub>U</sub>(T<sub>5</sub>)     Fix typo in help text</pre>
+<p>Git takes every commit reachable from Ada's U<sub>4a</sub> that is not reachable from U<sub>3b</sub>: U<sub>3a</sub>, ρ<sub>U</sub>(T<sub>5</sub>) and U<sub>4a.</sub> U<sub>2</sub> is in both histories, so it stays. By default Git skips merge commits, so U<sub>4a</sub> is dropped. The two that are left are put in a single line, U<sub>3a</sub> first. Nothing is written yet; the DAG is unchanged.</p>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph T["T · trunc"]
@@ -550,9 +555,89 @@ flowchart LR
     n3(("U<sub>3a</sub><br><small>Ada</small>"))
     n4(("U<sub>3b</sub><br><small>Max</small>"))
     n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
-    n6(("U<sub>4a</sub>"))
-    n7(("U<sub>3a</sub>′"))
-    n8(("ρ<sub>U</sub>(T<sub>5</sub>)′<br><small>a copy</small>"))
+    n6(("U<sub>4a</sub><br><small>Ada&#x27;s merge</small>"))
+  end
+  n0 --> n1
+  n2 --> n3
+  n2 --> n4
+  n2 --> n5
+  n3 --> n6
+  n5 --> n6
+  n2 ===|"is · rep"| n0
+  n5 ===|"is · rep"| n1
+  n3 -.-|"is"| n0
+  n4 -.-|"is"| n0
+  n6 -.-|"is"| n1
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+  classDef picked stroke:#e8a317,stroke-width:4px
+  class n3,n5 picked
+  classDef dropped stroke:#d64545,stroke-width:4px,stroke-dasharray: 5 3
+  class n6 dropped
+  classDef kept stroke:#2e9d5b,stroke-width:4px
+  class n2,n4 kept
+</pre></div>
+<p class='legend'><span><i style='border-color:#e8a317'></i>U<sub>3a</sub>, ρ<sub>U</sub>(T<sub>5</sub>): selected to be copied</span><span><i style='border-color:#d64545'></i>U<sub>4a</sub>: dropped</span><span><i style='border-color:#2e9d5b'></i>U<sub>2</sub>, U<sub>3b</sub>: not touched</span></p>
+</section>
+<section>
+<div class='step'>Step 2</div><h3>Git copies U<sub>3a</sub> onto U<sub>3b</sub></h3>
+<pre class='cmd'>Rebasing (1/2)   → U<sub>3a</sub>′</pre>
+<p>U<sub>3a</sub>′ makes the same change as U<sub>3a</sub>, with the same message and author, but on a new parent, so it is a new commit with a new SHA. This is the move Ada wanted.</p>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+    n1(("T<sub>5</sub><br><small>Jim</small>"))
+  end
+  subgraph U["U · umbrella"]
+    n2(("U<sub>2</sub>"))
+    n3(("U<sub>3a</sub><br><small>Ada</small>"))
+    n4(("U<sub>3b</sub><br><small>Max</small>"))
+    n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
+    n6(("U<sub>4a</sub><br><small>Ada&#x27;s merge</small>"))
+    n7(("U<sub>3a</sub>′<br><small>Ada, copied</small>"))
+  end
+  n0 --> n1
+  n2 --> n3
+  n2 --> n4
+  n2 --> n5
+  n3 --> n6
+  n5 --> n6
+  n4 --> n7
+  n2 ===|"is · rep"| n0
+  n5 ===|"is · rep"| n1
+  n3 -.-|"is"| n0
+  n4 -.-|"is"| n0
+  n6 -.-|"is"| n1
+  n7 -.-|"is"| n0
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+  classDef copy stroke:#e8a317,stroke-width:4px,fill:#e8a31744
+  class n7 copy
+  classDef picked stroke:#e8a317,stroke-width:4px
+  class n5 picked
+</pre></div>
+<p class='legend'><span><i style='border-color:#e8a317'></i>U<sub>3a</sub>′: a new copy (new SHA)</span><span><i style='border-color:#e8a317'></i>ρ<sub>U</sub>(T<sub>5</sub>): selected to be copied</span></p>
+</section>
+<section>
+<div class='step'>Step 3</div><h3>Git copies ρ<sub>U</sub>(T<sub>5</sub>) onto U<sub>3a</sub>′</h3>
+<pre class='cmd'>Rebasing (2/2)   → ρ<sub>U</sub>(T<sub>5</sub>)′
+Successfully rebased and updated refs/heads/ada.</pre>
+<p>ρ<sub>U</sub>(T<sub>5</sub>)′ keeps Jim as author and keeps the message, but its committer is now Ada, and its parent is U<sub>3a</sub>′. It still changes tools/trunc to T<sub>5</sub>'s content, so it <em>is</em> T<sub>5.</sub> But it is not T<sub>5</sub>'s rep: that is still ρ<sub>U</sub>(T<sub>5</sub>), which nothing has changed.</p>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+    n1(("T<sub>5</sub><br><small>Jim</small>"))
+  end
+  subgraph U["U · umbrella"]
+    n2(("U<sub>2</sub>"))
+    n3(("U<sub>3a</sub><br><small>Ada</small>"))
+    n4(("U<sub>3b</sub><br><small>Max</small>"))
+    n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
+    n6(("U<sub>4a</sub><br><small>Ada&#x27;s merge</small>"))
+    n7(("U<sub>3a</sub>′<br><small>Ada, copied</small>"))
+    n8(("ρ<sub>U</sub>(T<sub>5</sub>)′<br><small>copy of Jim&#x27;s fix</small>"))
   end
   n0 --> n1
   n2 --> n3
@@ -571,15 +656,60 @@ flowchart LR
   n8 -.-|"is"| n1
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
+  classDef copy stroke:#e8a317,stroke-width:4px,fill:#e8a31744
+  class n8 copy
+</pre></div>
+<p class='legend'><span><i style='border-color:#e8a317'></i>ρ<sub>U</sub>(T<sub>5</sub>)′: a new copy (new SHA)</span></p>
+</section>
+<section>
+<div class='step'>Step 4</div><h3>Ada&#x27;s line now ends at the copy; the originals are left behind</h3>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+    n1(("T<sub>5</sub><br><small>Jim</small>"))
+  end
+  subgraph U["U · umbrella"]
+    n2(("U<sub>2</sub>"))
+    n3(("U<sub>3a</sub><br><small>Ada</small>"))
+    n4(("U<sub>3b</sub><br><small>Max</small>"))
+    n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
+    n6(("U<sub>4a</sub><br><small>Ada&#x27;s merge</small>"))
+    n7(("U<sub>3a</sub>′<br><small>Ada, copied</small>"))
+    n8(("ρ<sub>U</sub>(T<sub>5</sub>)′<br><small>copy of Jim&#x27;s fix</small>"))
+  end
+  n0 --> n1
+  n2 --> n3
+  n2 --> n4
+  n2 --> n5
+  n3 --> n6
+  n5 --> n6
+  n4 --> n7
+  n7 --> n8
+  n2 ===|"is · rep"| n0
+  n5 ===|"is · rep"| n1
+  n3 -.-|"is"| n0
+  n4 -.-|"is"| n0
+  n6 -.-|"is"| n1
+  n7 -.-|"is"| n0
+  n8 -.-|"is"| n1
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+  classDef copy stroke:#e8a317,stroke-width:4px,fill:#e8a31744
+  class n7,n8 copy
+  classDef kept stroke:#2e9d5b,stroke-width:4px
+  class n5 kept
   classDef dim opacity:0.35
   class n3,n6 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4a</sub></td><td>T<sub>5</sub></td></tr><tr><td>U<sub>3a</sub>′</td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)′</td><td>T<sub>5</sub></td></tr></table></div>
-<p class='hazard'>ρ<sub>U</sub>(T<sub>5</sub>)′ has the same trunc content, author and message as T<sub>5</sub>, so it still <em>is</em> T<sub>5</sub>, but it is a second umbrella commit for T<sub>5.</sub> If another line (Max's U<sub>4b</sub>) has the real rep ρ<sub>U</sub>(T<sub>5</sub>), merging the two brings back the duplicate hazard: a trunc revert of T<sub>5</sub> could be undone.</p>
+<p class='legend'><span><i style='border-color:#e8a317'></i>U<sub>3a</sub>′, ρ<sub>U</sub>(T<sub>5</sub>)′: a new copy (new SHA)</span><span><i style='border-color:#2e9d5b'></i>ρ<sub>U</sub>(T<sub>5</sub>): not touched</span></p>
+<p class='hazard'>The umbrella now has two commits that make Jim's change: ρ<sub>U</sub>(T<sub>5</sub>) (which Max will merge, as in S10) and ρ<sub>U</sub>(T<sub>5</sub>)′ on Ada's line. When the lines are merged, Git sees the same change made twice on two sides. That merges cleanly today, but if trunc later reverts T<sub>5</sub> and the revert is brought in on one side, a merge can bring Jim's change back (H2). <code>git rebase --rebase-merges</code> doesn't help: it keeps the merge, but it still copies ρ<sub>U</sub>(T<sub>5</sub>) (also checked).</p>
 </section>
+<p class='verdict'><b>What this story demands:</b> a plain rebase copies every commit on the moved line that the target doesn't have, reps included, and drops merges. A copied rep is a duplicate. So <code>cx status</code> must detect "a second umbrella commit for trunc T<sub>5</sub>", and the safe move is S11a.</p>
+<h2 id='S11a'>S11a · The same move, done right</h2>
+<p>The same start as S11. Ada moves only her own commit U<sub>3a</sub> onto U<sub>3b</sub>, and keeps her merge.</p>
 <section>
-<div class='step'>Step 2</div><h3>What should have happened: move only Ada&#x27;s own commit, keep the merge</h3>
-<pre class='cmd'>ada$ jj rebase -s U<sub>3a</sub> -d U<sub>3b</sub>   (or: git rebase of U<sub>3a</sub> alone, then git merge ρ<sub>U</sub>(T<sub>5</sub>))</pre>
+<div class='step'>Step 0</div><h3>Start</h3>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph T["T · trunc"]
@@ -591,11 +721,42 @@ flowchart LR
     n3(("U<sub>3a</sub><br><small>Ada</small>"))
     n4(("U<sub>3b</sub><br><small>Max</small>"))
     n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
-    n6(("U<sub>4a</sub>"))
-    n7(("U<sub>3a</sub>′"))
-    n8(("ρ<sub>U</sub>(T<sub>5</sub>)′<br><small>a copy</small>"))
-    n9(("U<sub>3a</sub>″"))
-    n10(("U<sub>4a</sub>″"))
+    n6(("U<sub>4a</sub><br><small>Ada&#x27;s merge</small>"))
+  end
+  n0 --> n1
+  n2 --> n3
+  n2 --> n4
+  n2 --> n5
+  n3 --> n6
+  n5 --> n6
+  n2 ===|"is · rep"| n0
+  n5 ===|"is · rep"| n1
+  n3 -.-|"is"| n0
+  n4 -.-|"is"| n0
+  n6 -.-|"is"| n1
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+</pre></div>
+
+</section>
+<section>
+<div class='step'>Step 1</div><h3>jj moves U<sub>3a</sub> and what&#x27;s built on it, and nothing else</h3>
+<pre class='cmd'>ada$ jj rebase -s U<sub>3a</sub> -d U<sub>3b</sub>
+   (plain Git: git rebase --onto U<sub>3b</sub> U<sub>2</sub> U<sub>3a</sub>, then git merge ρ<sub>U</sub>(T<sub>5</sub>))</pre>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+    n1(("T<sub>5</sub><br><small>Jim</small>"))
+  end
+  subgraph U["U · umbrella"]
+    n2(("U<sub>2</sub>"))
+    n3(("U<sub>3a</sub><br><small>Ada</small>"))
+    n4(("U<sub>3b</sub><br><small>Max</small>"))
+    n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
+    n6(("U<sub>4a</sub><br><small>Ada&#x27;s merge</small>"))
+    n7(("U<sub>3a</sub>′<br><small>Ada, copied</small>"))
+    n8(("U<sub>4a</sub>′<br><small>Ada&#x27;s merge, redone</small>"))
   end
   n0 --> n1
   n2 --> n3
@@ -605,9 +766,7 @@ flowchart LR
   n5 --> n6
   n4 --> n7
   n7 --> n8
-  n4 --> n9
-  n9 --> n10
-  n5 --> n10
+  n5 --> n8
   n2 ===|"is · rep"| n0
   n5 ===|"is · rep"| n1
   n3 -.-|"is"| n0
@@ -615,17 +774,19 @@ flowchart LR
   n6 -.-|"is"| n1
   n7 -.-|"is"| n0
   n8 -.-|"is"| n1
-  n9 -.-|"is"| n0
-  n10 -.-|"is"| n1
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
+  classDef copy stroke:#e8a317,stroke-width:4px,fill:#e8a31744
+  class n7,n8 copy
+  classDef kept stroke:#2e9d5b,stroke-width:4px
+  class n5 kept
   classDef dim opacity:0.35
-  class n3,n6,n7,n8 dim
+  class n3,n6 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4a</sub></td><td>T<sub>5</sub></td></tr><tr><td>U<sub>3a</sub>′</td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)′</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>3a</sub>″</td><td>T<sub>4</sub></td></tr><tr><td>U<sub>4a</sub>″</td><td>T<sub>5</sub></td></tr></table></div>
-<p class='verdict'>ρ<sub>U</sub>(T<sub>5</sub>) is untouched and still the only rep. jj's rebase keeps merges. Plain git rebase linearises them, so CloneX must detect ρ<sub>U</sub>(T<sub>5</sub>)′ ("a second umbrella commit for trunc T<sub>5</sub>") and offer this repair.</p>
+<p class='legend'><span><i style='border-color:#e8a317'></i>U<sub>3a</sub>′, U<sub>4a</sub>′: a new copy (new SHA)</span><span><i style='border-color:#2e9d5b'></i>ρ<sub>U</sub>(T<sub>5</sub>): not touched</span></p>
+<p class='verdict'><code>-s U<sub>3a</sub></code> means "U<sub>3a</sub> and its descendants": U<sub>3a</sub> and U<sub>4a.</sub> ρ<sub>U</sub>(T<sub>5</sub>) is not a descendant of U<sub>3a</sub>, so jj doesn't touch it, and the new merge U<sub>4a</sub>′ has the very same ρ<sub>U</sub>(T<sub>5</sub>) as its second parent (same SHA, checked with jj 0.44). T<sub>5</sub> still has exactly one umbrella commit.</p>
 </section>
-<p class='verdict'><b>What this story demands:</b> reps must never be rebased; a rebase that copies one creates a duplicate. Needs detection in <code>cx status</code>, and jj should treat reps as immutable. Plain <code>git rebase</code> is a hazard to document.</p>
+<p class='verdict'><b>What this story demands:</b> move only your own commits, and keep merges of reps as merges. jj's <code>rebase -s</code> does this; plain Git needs the two-command form.</p>
 <h2 id='S12'>S12 · GitHub squash-merges an umbrella PR</h2>
 <p>Ada's PR head is U<sub>4a</sub> (her README change merged with ρ<sub>U</sub>(T<sub>5</sub>)). Nothing else in the umbrella has T<sub>5</sub> yet. GitHub's squash button makes one new commit U<sub>4b</sub> on top of U<sub>3b.</sub></p>
 <section>
@@ -657,7 +818,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4a</sub></td><td>T<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Squash: U<sub>4b</sub> has one parent (U<sub>3b</sub>) and U<sub>4a</sub>&#x27;s combined changes</h3>
@@ -694,7 +855,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n3,n6 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3a</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3b</sub></td><td>T<sub>4</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4a</sub></td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4b</sub></td><td>T<sub>5</sub></td></tr></table></div>
+
 <p class='hazard'>U<sub>4b</sub> changes tools/trunc from T<sub>4</sub> to T<sub>5</sub>'s content, but it isn't T<sub>5</sub>'s rep. Its message carries ρ<sub>U</sub>(T<sub>5</sub>)'s record of which trunc commit it stands for, and the content matches, so CloneX can prove U<sub>4b</sub> <em>is</em> T<sub>5</sub>: publishing won't push a copy of Jim's fix authored by Ada. But the umbrella's history now has Jim's change inside U<sub>4b</sub>, and merging U<sub>4b</sub>'s line with a line that has the real ρ<sub>U</sub>(T<sub>5</sub>) brings back the duplicate hazard. A merge commit instead of a squash avoids all of this.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> squash merges of umbrella PRs hide reps inside a new commit. Merge-commit-only (the owner's preference) keeps every rep in the DAG. CloneX must still prove U<sub>4b</sub> is T<sub>5</sub> by its record and content, so it never publishes a false copy.</p>
@@ -717,7 +878,7 @@ flowchart LR
   style C fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to C · crosscut (new)</th></tr><tr><td>U<sub>1</sub></td><td>—</td></tr><tr><td>U<sub>2</sub></td><td>—</td></tr><tr><td>U<sub>3</sub></td><td>—</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Derive crosscut&#x27;s history: the umbrella commits are its reps</h3>
@@ -743,7 +904,7 @@ flowchart LR
   style C fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to C · crosscut (new)</th></tr><tr><td>U<sub>1</sub></td><td>π<sub>C</sub>(U<sub>1</sub>)</td></tr><tr><td>U<sub>2</sub></td><td>π<sub>C</sub>(U<sub>1</sub>)</td></tr><tr><td>U<sub>3</sub></td><td>π<sub>C</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>Meanwhile the umbrella moves on (U<sub>4</sub>), and Olga commits C<sub>1</sub> to crosscut</h3>
@@ -772,7 +933,7 @@ flowchart LR
   style C fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to C · crosscut (new)</th></tr><tr><td>U<sub>1</sub></td><td>π<sub>C</sub>(U<sub>1</sub>)</td></tr><tr><td>U<sub>2</sub></td><td>π<sub>C</sub>(U<sub>1</sub>)</td></tr><tr><td>U<sub>3</sub></td><td>π<sub>C</sub>(U<sub>3</sub>)</td></tr><tr><td>U<sub>4</sub></td><td>π<sub>C</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>C<sub>1</sub>&#x27;s rep is built on π<sub>C</sub>(U<sub>3</sub>)&#x27;s rep (U<sub>3</sub>), a full umbrella state</h3>
@@ -805,7 +966,7 @@ flowchart LR
   style C fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to C · crosscut (new)</th></tr><tr><td>U<sub>1</sub></td><td>π<sub>C</sub>(U<sub>1</sub>)</td></tr><tr><td>U<sub>2</sub></td><td>π<sub>C</sub>(U<sub>1</sub>)</td></tr><tr><td>U<sub>3</sub></td><td>π<sub>C</sub>(U<sub>3</sub>)</td></tr><tr><td>U<sub>4</sub></td><td>π<sub>C</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(C<sub>1</sub>)</td><td>C<sub>1</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>Explicit merge into the umbrella&#x27;s current work</h3>
@@ -842,7 +1003,7 @@ flowchart LR
   style C fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to C · crosscut (new)</th></tr><tr><td>U<sub>1</sub></td><td>π<sub>C</sub>(U<sub>1</sub>)</td></tr><tr><td>U<sub>2</sub></td><td>π<sub>C</sub>(U<sub>1</sub>)</td></tr><tr><td>U<sub>3</sub></td><td>π<sub>C</sub>(U<sub>3</sub>)</td></tr><tr><td>U<sub>4</sub></td><td>π<sub>C</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(C<sub>1</sub>)</td><td>C<sub>1</sub></td></tr><tr><td>U<sub>5</sub></td><td>C<sub>1</sub></td></tr></table></div>
+
 <p class='verdict'>ρ<sub>U</sub>(C<sub>1</sub>) looks like an ordinary side branch from U<sub>3</sub> that changed only crates/standards; its merge base with U<sub>4</sub> is U<sub>3</sub>, a real full state.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> extraction needs no new umbrella commits: the existing ones become reps. The same placement rule covers later outside commits, and a composition-made rep has a full tree, so it's a good merge base.</p>
@@ -870,7 +1031,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>1</sub></td><td>—</td></tr><tr><td>U<sub>2</sub></td><td>—</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Create reps for trunc&#x27;s history, built on the commit being converted</h3>
@@ -907,7 +1068,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>1</sub></td><td>—</td></tr><tr><td>U<sub>2</sub></td><td>—</td></tr><tr><td>ρ<sub>U</sub>(T<sub>1</sub>)</td><td>T<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>2</sub>)</td><td>T<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>3</sub>)</td><td>T<sub>3</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>4</sub>)</td><td>T<sub>4</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>The conversion commit</h3>
@@ -946,7 +1107,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>1</sub></td><td>—</td></tr><tr><td>U<sub>2</sub></td><td>—</td></tr><tr><td>ρ<sub>U</sub>(T<sub>1</sub>)</td><td>T<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>2</sub>)</td><td>T<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>3</sub>)</td><td>T<sub>3</sub></td></tr><tr><td>ρ<sub>U</sub>(T<sub>4</sub>)</td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>T<sub>4</sub></td></tr></table></div>
+
 <p class='verdict'>U<sub>1</sub> and U<sub>2</sub> are unchanged (checking them out still needs the submodule, as it always did). From U<sub>3</sub> on, trunc's files are ordinary files. The same inputs (U<sub>2</sub>, trunc's history) give the same reps on every machine.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> history before containment gets reps built on the first containing commit, so reps always have full trees. The old umbrella history is never rewritten.</p>
@@ -998,7 +1159,7 @@ flowchart LR
   style V fill:none,stroke-dasharray: 6 4
   style H fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to D · dotsync</th><th>π to H · agent-harness</th></tr><tr><td>ρ<sub>V</sub>(D<sub>1</sub>)</td><td>D<sub>1</sub></td><td>—</td></tr><tr><td>ρ<sub>V</sub>(D<sub>2</sub>)</td><td>D<sub>2</sub></td><td>—</td></tr><tr><td>ρ<sub>V</sub>(H<sub>1</sub>)</td><td>—</td><td>H<sub>1</sub></td></tr></table></div>
+
 <p class='hazard'>V has no earlier commit to build on, so these first reps contain only their own tool's directory. They are real V states, since V holds nothing else yet, but they are partial trees. A later merge whose base is ρ<sub>V</sub>(D<sub>2</sub>) sees agent-harness's files as "added", the narrow rename-detection residual (G1). CloneX's own merges avoid it; plain <code>git revert</code> of ρ<sub>V</sub>(D<sub>2</sub>) inside V would not.</p>
 </section>
 <section>
@@ -1032,7 +1193,7 @@ flowchart LR
   style V fill:none,stroke-dasharray: 6 4
   style H fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to D · dotsync</th><th>π to H · agent-harness</th></tr><tr><td>ρ<sub>V</sub>(D<sub>1</sub>)</td><td>D<sub>1</sub></td><td>—</td></tr><tr><td>ρ<sub>V</sub>(D<sub>2</sub>)</td><td>D<sub>2</sub></td><td>—</td></tr><tr><td>ρ<sub>V</sub>(H<sub>1</sub>)</td><td>—</td><td>H<sub>1</sub></td></tr><tr><td>V<sub>1</sub></td><td>D<sub>2</sub></td><td>H<sub>1</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Ada&#x27;s change across both tools is one V commit, the rep of two tool commits</h3>
@@ -1073,7 +1234,7 @@ flowchart LR
   style V fill:none,stroke-dasharray: 6 4
   style H fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to D · dotsync</th><th>π to H · agent-harness</th></tr><tr><td>ρ<sub>V</sub>(D<sub>1</sub>)</td><td>D<sub>1</sub></td><td>—</td></tr><tr><td>ρ<sub>V</sub>(D<sub>2</sub>)</td><td>D<sub>2</sub></td><td>—</td></tr><tr><td>ρ<sub>V</sub>(H<sub>1</sub>)</td><td>—</td><td>H<sub>1</sub></td></tr><tr><td>V<sub>1</sub></td><td>D<sub>2</sub></td><td>H<sub>1</sub></td></tr><tr><td>V<sub>2</sub></td><td>π<sub>D</sub>(V<sub>2</sub>)</td><td>π<sub>H</sub>(V<sub>2</sub>)</td></tr></table></div>
+
 <p class='verdict'>Publishing sends π<sub>D</sub>(V<sub>2</sub>) and π<sub>H</sub>(V<sub>2</sub>) to their repos. V can then be deleted. Nothing of Ada's work lives only in V once both are published.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> throwaway compositions work unchanged, except that the very first reps have partial trees (a documented residual). Safe to discard V is a checkable property: no V commit is the rep of an unpublished tool commit.</p>
@@ -1093,7 +1254,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Ada commits the red (test) change in the umbrella</h3>
@@ -1116,7 +1277,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>ratchet-bot commits T<sub>5</sub> on π<sub>T</sub>(U<sub>3</sub>) in trunc</h3>
@@ -1141,7 +1302,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Ada brings T<sub>5</sub> in; its rep sits directly on her own commit U<sub>3</sub></h3>
@@ -1169,7 +1330,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>Ada commits green on top of ρ<sub>U</sub>(T<sub>5</sub>)</h3>
@@ -1201,7 +1362,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4</sub></td><td>π<sub>T</sub>(U<sub>4</sub>)</td></tr></table></div>
+
 <p class='verdict'>trunc's history is π<sub>T</sub>(U<sub>3</sub>) → T<sub>5</sub> → π<sub>T</sub>(U<sub>4</sub>): red, bot, green, exactly as the ratchet requires. The bot records passing next, and it arrives the same way T<sub>5</sub> did.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> a bot commit on your published commit comes back as a rep sitting directly on your own commit, with no merge needed. The order in the tool is preserved by construction.</p>
@@ -1221,7 +1382,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Ada commits the red (test) change in the umbrella</h3>
@@ -1244,7 +1405,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>ratchet-bot commits T<sub>5</sub> on π<sub>T</sub>(U<sub>3</sub>) in trunc</h3>
@@ -1269,7 +1430,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Ada brings T<sub>5</sub> in; its rep sits directly on her own commit U<sub>3</sub></h3>
@@ -1297,7 +1458,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>Ada commits the test fix on top of ρ<sub>U</sub>(T<sub>5</sub>)</h3>
@@ -1329,7 +1490,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>4</sub></td><td>π<sub>T</sub>(U<sub>4</sub>)</td></tr></table></div>
+
 <p class='verdict'>Nothing special. trunc gets π<sub>T</sub>(U<sub>3</sub>) → T<sub>5</sub> → π<sub>T</sub>(U<sub>4</sub>), the bot runs again on top, and the flow continues. This is the path that needs no machinery.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> append-only fixes after outside work has built on yours need nothing new.</p>
@@ -1349,7 +1510,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Ada commits the red (test) change in the umbrella</h3>
@@ -1372,7 +1533,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>ratchet-bot commits T<sub>5</sub> on π<sub>T</sub>(U<sub>3</sub>) in trunc</h3>
@@ -1397,7 +1558,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Ada brings T<sub>5</sub> in; its rep sits directly on her own commit U<sub>3</sub></h3>
@@ -1425,7 +1586,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>jj refuses: U<sub>3</sub> has outside work on top</h3>
@@ -1454,7 +1615,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr></table></div>
+
 <p class='hazard'>Without that refusal, jj would rebase ρ<sub>U</sub>(T<sub>5</sub>) onto the amended U<sub>3.</sub> The result would be a commit authored by the bot, recording a ledger for a test the bot never saw. Mapped down, it is not T<sub>5</sub>, so publishing would push a forged bot commit into trunc. The refusal is what makes the choice explicit.</p>
 </section>
 <section>
@@ -1491,7 +1652,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n2,n3,n4,n5 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>3</sub>′</td><td>π<sub>T</sub>(U<sub>3</sub>′)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 6</div><h3>The bot reruns on π<sub>T</sub>(U<sub>3</sub>′); Ada brings it in</h3>
@@ -1532,7 +1693,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n2,n3,n4,n5 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>5</sub>)</td><td>T<sub>5</sub></td></tr><tr><td>U<sub>3</sub>′</td><td>π<sub>T</sub>(U<sub>3</sub>′)</td></tr><tr><td>ρ<sub>U</sub>(T<sub>6</sub>)</td><td>T<sub>6</sub></td></tr></table></div>
+
 <p class='verdict'>Same outcome as today's plain-Git flow (force-push, redispatch), but CloneX made the drop explicit and listed the bot commit being discarded.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> a brought-in rep on top of your commit makes that commit shared. Rewriting it means explicitly dropping the outside work, never silently carrying it along. jj immutability of reps enforces this; <code>cx</code> provides the explicit drop.</p>
@@ -1552,7 +1713,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Ada commits the red (test) change in the umbrella</h3>
@@ -1575,7 +1736,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>ratchet-bot commits T<sub>5</sub> on π<sub>T</sub>(U<sub>3</sub>) in trunc</h3>
@@ -1600,7 +1761,7 @@ flowchart LR
   style T fill:none,stroke-dasharray: 6 4
   style U fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Ada amends U<sub>3</sub> to U<sub>3</sub>′ (nothing sits on U<sub>3</sub> yet in the umbrella)</h3>
@@ -1631,7 +1792,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n2 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>U<sub>3</sub>′</td><td>π<sub>T</sub>(U<sub>3</sub>′)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>Fetching finds T<sub>5</sub>, built on a superseded version of Ada&#x27;s change</h3>
@@ -1663,7 +1824,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n2,n3,n4 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th></tr><tr><td>U<sub>2</sub></td><td>T<sub>4</sub></td></tr><tr><td>U<sub>3</sub></td><td>π<sub>T</sub>(U<sub>3</sub>)</td></tr><tr><td>U<sub>3</sub>′</td><td>π<sub>T</sub>(U<sub>3</sub>′)</td></tr></table></div>
+
 <p class='verdict'>CloneX recognises staleness through the change-id (U<sub>3</sub> and U<sub>3</sub>′ are one change), so it doesn't create ρ<sub>U</sub>(T<sub>5</sub>) or offer a merge. Without a change-id (a plain-Git amend), bringing T<sub>5</sub> in would give an add/add conflict on the test file: loud, not silent.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> staleness is detected when a brought-in commit's rep would sit on a composition commit that a newer version of the same change has superseded.</p>
@@ -1689,7 +1850,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>09:45 Ada commits U<sub>5</sub>, touching trunc, dotsync and crates/standards</h3>
@@ -1720,7 +1881,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr><tr><td>U<sub>5</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>5</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>10:00 Bob commits D<sub>5</sub> in dotsync and pushes it</h3>
@@ -1754,7 +1915,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr><tr><td>U<sub>5</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>5</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>10:30 Ada publishes; CloneX tells her dotsync has moved</h3>
@@ -1790,7 +1951,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr><tr><td>U<sub>5</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>5</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>Ada creates D<sub>5</sub>&#x27;s rep; it is built on D<sub>4</sub>&#x27;s rep, not on her work</h3>
@@ -1827,7 +1988,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr><tr><td>U<sub>5</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>5</sub>)</td></tr><tr><td>ρ<sub>U</sub>(D<sub>5</sub>)</td><td>T<sub>4</sub></td><td>D<sub>5</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 5</div><h3>Ada merges it: an ordinary Git merge in the umbrella</h3>
@@ -1873,7 +2034,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr><tr><td>U<sub>5</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>5</sub>)</td></tr><tr><td>ρ<sub>U</sub>(D<sub>5</sub>)</td><td>T<sub>4</sub></td><td>D<sub>5</sub></td></tr><tr><td>U<sub>6</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>6</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 6</div><h3>Ada fixes the call</h3>
@@ -1923,7 +2084,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr><tr><td>U<sub>5</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>5</sub>)</td></tr><tr><td>ρ<sub>U</sub>(D<sub>5</sub>)</td><td>T<sub>4</sub></td><td>D<sub>5</sub></td></tr><tr><td>U<sub>6</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>6</sub>)</td></tr><tr><td>U<sub>7</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>7</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 7</div><h3>Ada publishes again; only dotsync&#x27;s part changed</h3>
@@ -1976,7 +2137,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr><tr><td>U<sub>5</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>5</sub>)</td></tr><tr><td>ρ<sub>U</sub>(D<sub>5</sub>)</td><td>T<sub>4</sub></td><td>D<sub>5</sub></td></tr><tr><td>U<sub>6</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>6</sub>)</td></tr><tr><td>U<sub>7</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>7</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 8</div><h3>Bob merges Ada&#x27;s dotsync PR on GitHub</h3>
@@ -2030,7 +2191,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr><tr><td>U<sub>5</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>5</sub>)</td></tr><tr><td>ρ<sub>U</sub>(D<sub>5</sub>)</td><td>T<sub>4</sub></td><td>D<sub>5</sub></td></tr><tr><td>U<sub>6</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>6</sub>)</td></tr><tr><td>U<sub>7</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>7</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 9</div><h3>Bringing D<sub>6</sub> in: its rep&#x27;s parents are ρ<sub>U</sub>(D<sub>5</sub>) and U<sub>7</sub></h3>
@@ -2088,7 +2249,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style D fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to T · trunc</th><th>π to D · dotsync</th></tr><tr><td>U<sub>4</sub></td><td>T<sub>4</sub></td><td>D<sub>4</sub></td></tr><tr><td>U<sub>5</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>5</sub>)</td></tr><tr><td>ρ<sub>U</sub>(D<sub>5</sub>)</td><td>T<sub>4</sub></td><td>D<sub>5</sub></td></tr><tr><td>U<sub>6</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>6</sub>)</td></tr><tr><td>U<sub>7</sub></td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>π<sub>D</sub>(U<sub>7</sub>)</td></tr><tr><td>ρ<sub>U</sub>(D<sub>6</sub>)</td><td>π<sub>T</sub>(U<sub>5</sub>)</td><td>D<sub>6</sub></td></tr></table></div>
+
 <p class='verdict'>ρ<sub>U</sub>(D<sub>5</sub>) is already an ancestor of U<sub>7</sub>, so the tree outside dotsync is U<sub>7</sub>'s, and dotsync's content is π<sub>D</sub>(U<sub>7</sub>)'s, which is D<sub>6</sub>'s. ρ<sub>U</sub>(D<sub>6</sub>) is a merge with no content change, a child of U<sub>7.</sub> Ada's line just moves forward to it; no merge is needed.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> concurrent work in a tool comes in as its own rep, beside the umbrella's work, and joins it by an ordinary merge. That merge maps down to the tool's ordinary "merge main into my branch" commit, and the break shows up where the author can fix it. Bob sees only Ada's PR.</p>
@@ -2119,7 +2280,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style R fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to tdd-ratchet @R1</th></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>5</sub>)</td><td>R<sub>5</sub></td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>6</sub>)</td><td>R<sub>6</sub></td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>7</sub>)</td><td>R<sub>7</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Max adds occurrence R2: reps of its history, built on ρ<sub>U.R1</sub>(R<sub>7</sub>)</h3>
@@ -2155,7 +2316,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style R fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to tdd-ratchet @R1</th><th>π to tdd-ratchet @R2</th></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>5</sub>)</td><td>R<sub>5</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>6</sub>)</td><td>R<sub>6</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>7</sub>)</td><td>R<sub>7</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>5</sub>)</td><td>R<sub>7</sub></td><td>R<sub>5</sub></td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>6</sub>)</td><td>R<sub>7</sub></td><td>R<sub>6</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>Max fixes the CVE in both copies in one umbrella commit U<sub>1</sub></h3>
@@ -2199,7 +2360,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style R fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to tdd-ratchet @R1</th><th>π to tdd-ratchet @R2</th></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>5</sub>)</td><td>R<sub>5</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>6</sub>)</td><td>R<sub>6</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>7</sub>)</td><td>R<sub>7</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>5</sub>)</td><td>R<sub>7</sub></td><td>R<sub>5</sub></td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>6</sub>)</td><td>R<sub>7</sub></td><td>R<sub>6</sub></td></tr><tr><td>U<sub>1</sub></td><td>π<sub>R1</sub>(U<sub>1</sub>)</td><td>π<sub>R2</sub>(U<sub>1</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Max publishes: one PR on the current line, one backport on v1.1.6</h3>
@@ -2245,7 +2406,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style R fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to tdd-ratchet @R1</th><th>π to tdd-ratchet @R2</th></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>5</sub>)</td><td>R<sub>5</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>6</sub>)</td><td>R<sub>6</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>7</sub>)</td><td>R<sub>7</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>5</sub>)</td><td>R<sub>7</sub></td><td>R<sub>5</sub></td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>6</sub>)</td><td>R<sub>7</sub></td><td>R<sub>6</sub></td></tr><tr><td>U<sub>1</sub></td><td>π<sub>R1</sub>(U<sub>1</sub>)</td><td>π<sub>R2</sub>(U<sub>1</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>tdd-ratchet merges π<sub>R1</sub>(U<sub>1</sub>) (R<sub>8</sub>) and tags π<sub>R2</sub>(U<sub>1</sub>) as v1.1.7</h3>
@@ -2292,7 +2453,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style R fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to tdd-ratchet @R1</th><th>π to tdd-ratchet @R2</th></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>5</sub>)</td><td>R<sub>5</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>6</sub>)</td><td>R<sub>6</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>7</sub>)</td><td>R<sub>7</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>5</sub>)</td><td>R<sub>7</sub></td><td>R<sub>5</sub></td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>6</sub>)</td><td>R<sub>7</sub></td><td>R<sub>6</sub></td></tr><tr><td>U<sub>1</sub></td><td>π<sub>R1</sub>(U<sub>1</sub>)</td><td>π<sub>R2</sub>(U<sub>1</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 5</div><h3>Bringing R<sub>8</sub> in at R1: its rep contains R2&#x27;s fix too</h3>
@@ -2343,7 +2504,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style R fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to tdd-ratchet @R1</th><th>π to tdd-ratchet @R2</th></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>5</sub>)</td><td>R<sub>5</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>6</sub>)</td><td>R<sub>6</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>7</sub>)</td><td>R<sub>7</sub></td><td>—</td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>5</sub>)</td><td>R<sub>7</sub></td><td>R<sub>5</sub></td></tr><tr><td>ρ<sub>U.R2</sub>(R<sub>6</sub>)</td><td>R<sub>7</sub></td><td>R<sub>6</sub></td></tr><tr><td>U<sub>1</sub></td><td>π<sub>R1</sub>(U<sub>1</sub>)</td><td>π<sub>R2</sub>(U<sub>1</sub>)</td></tr><tr><td>ρ<sub>U.R1</sub>(R<sub>8</sub>)</td><td>R<sub>8</sub></td><td>π<sub>R2</sub>(U<sub>1</sub>)</td></tr></table></div>
+
 <p class='verdict'>Outside tools/tdd-ratchet/, ρ<sub>U.R1</sub>(R<sub>8</sub>)'s tree is Git's merge of ρ<sub>U.R1</sub>(R<sub>7</sub>) and U<sub>1</sub>, which is U<sub>1</sub>'s, so at R2 it <em>is</em> π<sub>R2</sub>(U<sub>1</sub>). That is consistent: the fix is in both copies. v1.1.7 needs nothing brought in; π<sub>R2</sub>(U<sub>1</sub>)'s rep is already U<sub>1.</sub></p>
 </section>
 <p class='verdict'><b>What this story demands:</b> a tool at two paths is two occurrences; reps are per tool commit <em>per occurrence</em>. One umbrella commit can be the rep of two commits of the same tool, one per occurrence. Adding an occurrence builds reps for its history on the commit it is added to, like conversion. Rename and copy detection don't pair the two copies, because neither path is deleted.</p>
@@ -2377,7 +2538,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style B fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>tb is rewritten: B<sub>2</sub>′, B<sub>3</sub>′ replace B<sub>2</sub>, B<sub>3</sub></h3>
@@ -2415,7 +2576,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n1,n2 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>Max creates reps for the new history, built on B<sub>1</sub>&#x27;s rep</h3>
@@ -2459,7 +2620,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n1,n2 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>′)</td><td>B<sub>2</sub>′</td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>′)</td><td>B<sub>3</sub>′</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Max merges it, with B<sub>3</sub> as the base for tools/tb → U<sub>2</sub></h3>
@@ -2505,7 +2666,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n1,n2 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>′)</td><td>B<sub>2</sub>′</td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>′)</td><td>B<sub>3</sub>′</td></tr><tr><td>U<sub>2</sub></td><td>B<sub>3</sub>′</td></tr></table></div>
+
 <p class='verdict'>CloneX's merge uses the replaced commit B<sub>3</sub> as the base for tools/tb. The umbrella's side is exactly B<sub>3</sub>, so tools/tb simply becomes B<sub>3</sub>′, with no conflict (Q-S7b). U<sub>2</sub> records, in the commit itself, that B<sub>3</sub>′ replaces B<sub>3</sub>, so every machine maps it down the same way: U<sub>2</sub> <em>is</em> B<sub>3</sub>′ (Q-S2e). The record names commits, not labels (D1). How it is written is parked.</p>
 <p class='hazard'>A plain <code>git merge</code> uses ρ<sub>U</sub>(B<sub>1</sub>) as the base. Both sides changed the ledger since B<sub>1</sub>, differently, so it conflicts in <code>.test-status.json</code>, a file the umbrella never touched. And mapping the merge down without the replacement record gives a new tb commit merging B<sub>3</sub> and B<sub>3</sub>′, which would put the bad history back into tb if anyone published it.</p>
 </section>
@@ -2540,7 +2701,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style B fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 1</div><h3>Before the rewrite, Ada commits U<sub>2</sub> in the umbrella and publishes π<sub>B</sub>(U<sub>2</sub>)</h3>
@@ -2576,7 +2737,7 @@ flowchart LR
   style U fill:none,stroke-dasharray: 6 4
   style B fill:none,stroke-dasharray: 6 4
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr><tr><td>U<sub>2</sub></td><td>π<sub>B</sub>(U<sub>2</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 2</div><h3>tb is rewritten: B<sub>2</sub>′, B<sub>3</sub>′ replace B<sub>2</sub>, B<sub>3</sub></h3>
@@ -2619,7 +2780,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n1,n2 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr><tr><td>U<sub>2</sub></td><td>π<sub>B</sub>(U<sub>2</sub>)</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Max creates reps for the new history, built on B<sub>1</sub>&#x27;s rep</h3>
@@ -2668,7 +2829,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n1,n2 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr><tr><td>U<sub>2</sub></td><td>π<sub>B</sub>(U<sub>2</sub>)</td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>′)</td><td>B<sub>2</sub>′</td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>′)</td><td>B<sub>3</sub>′</td></tr></table></div>
+
 </section>
 <section>
 <div class='step'>Step 4</div><h3>Max merges it, with B<sub>3</sub> as the base for tools/tb → U<sub>3</sub></h3>
@@ -2719,7 +2880,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n1,n2 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr><tr><td>U<sub>2</sub></td><td>π<sub>B</sub>(U<sub>2</sub>)</td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>′)</td><td>B<sub>2</sub>′</td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>′)</td><td>B<sub>3</sub>′</td></tr><tr><td>U<sub>3</sub></td><td>B<sub>3</sub>′</td></tr></table></div>
+
 <p class='verdict'>CloneX's merge uses the replaced commit B<sub>3</sub> as the base for tools/tb. The umbrella's side is exactly B<sub>3</sub>, so tools/tb simply becomes B<sub>3</sub>′, with no conflict (Q-S7b). U<sub>3</sub> records, in the commit itself, that B<sub>3</sub>′ replaces B<sub>3</sub>, so every machine maps it down the same way: U<sub>3</sub> <em>is</em> B<sub>3</sub>′ (Q-S2e). The record names commits, not labels (D1). How it is written is parked.</p>
 <p class='hazard'>A plain <code>git merge</code> uses ρ<sub>U</sub>(B<sub>1</sub>) as the base. Both sides changed the ledger since B<sub>1</sub>, differently, so it conflicts in <code>.test-status.json</code>, a file the umbrella never touched. And mapping the merge down without the replacement record gives a new tb commit merging B<sub>3</sub> and B<sub>3</sub>′, which would put the bad history back into tb if anyone published it.</p>
 </section>
@@ -2779,7 +2940,7 @@ flowchart LR
   classDef dim opacity:0.35
   class n1,n2,n8 dim
 </pre></div>
-<div class="tablewrap"><table><tr><th>composition commit</th><th>π to B · tb</th></tr><tr><td>ρ<sub>U</sub>(B<sub>1</sub>)</td><td>B<sub>1</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>)</td><td>B<sub>2</sub></td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>)</td><td>B<sub>3</sub></td></tr><tr><td>U<sub>1</sub></td><td>B<sub>3</sub></td></tr><tr><td>U<sub>2</sub></td><td>π<sub>B</sub>(U<sub>2</sub>)</td></tr><tr><td>ρ<sub>U</sub>(B<sub>2</sub>′)</td><td>B<sub>2</sub>′</td></tr><tr><td>ρ<sub>U</sub>(B<sub>3</sub>′)</td><td>B<sub>3</sub>′</td></tr><tr><td>U<sub>3</sub></td><td>B<sub>3</sub>′</td></tr><tr><td>U<sub>4</sub></td><td>π<sub>B</sub>(U<sub>4</sub>)</td></tr></table></div>
+
 <p class='verdict'>Republishing updates Ada's own PR branch from π<sub>B</sub>(U<sub>2</sub>) to π<sub>B</sub>(U<sub>4</sub>), replacing only her own commit, as anyone must after an upstream force-push. The alternative mapping, merge(π<sub>B</sub>(U<sub>2</sub>), B<sub>3</sub>′), would carry B<sub>2</sub> and B<sub>3</sub> back into tb through her PR.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> (candidate rule) a tool commit built on a replaced commit is regenerated on its replacement when mapped through a merge that records the replacement. This needs its own attack before it is trusted: who may record a replacement, and what if it is wrong (the forged-claim story).</p>
