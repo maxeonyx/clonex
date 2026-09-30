@@ -17,6 +17,8 @@ Conventions (see AGENTS.md):
   "made" marks a rep the tool commit was derived from (W14), "rep" one
   brought in from outside (must be built on its tool parents' reps)
 - faded = no longer part of any line of work
+- a composition can itself be a component ("components" maps each
+  composition to what it contains; by default, every non-composition repo)
 - a commit is named by its label (U_3, π_T(U_3), ρ_U(T_5)); is/rep/made
   entries are (composition commit, tool commit) or, when one tool appears
   at two paths, (composition commit, tool commit, occurrence)
@@ -135,6 +137,8 @@ def check(story):
     """Refuse to draw a story that breaks the model's own bookkeeping."""
     repo_of, reps, is_of = {}, {}, {}
     comps = set(story["compositions"])
+    tools = [r for r, _ in story["repos"] if r not in comps]
+    parts = story.get("components", {c: tools for c in comps})
     for i, step in enumerate(story["steps"]):
         where = f"{story['id']} step {i}"
         for c in step.get("commits", []):
@@ -149,7 +153,7 @@ def check(story):
             for line in step.get(kind, []):
                 a, b = line[:2]
                 assert a in repo_of and b in repo_of, f"{where}: {kind} {a}-{b} names a missing commit"
-                assert repo_of[a] in comps and repo_of[b] not in comps, f"{where}: {kind} must go composition -> tool"
+                assert repo_of[b] in parts.get(repo_of[a], []), f"{where}: {kind} must go from a composition to one of its components"
                 o = occ(line, repo_of)
                 prev = is_of.get((a, o))
                 assert prev in (None, b), f"{where}: {a} is both {prev} and {b} at {o}"

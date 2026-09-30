@@ -662,8 +662,15 @@ in two kinds:
   S7a rule. So there are two kinds of record, and neither needs trust:
   reps, which are recomputed, and switches, which are decisions.
 
+- **S14 (Max's personal repo contains the umbrella):** nesting needs no new
+  rules. π composes: trunc seen from M is π_T ∘ π_U, so M only knows its
+  own components (U and the site). ρ composes: Jim's fix enters M as
+  ρ_M(ρ_U(T_5)), with one rep at each level, and ρ_U(T_5) never has to be
+  published to the umbrella first, because it is computed. Publishing
+  from M goes down level by level, and each repository gets ordinary
+  commits.
+
 Still to walk:
-- S14 (nesting);
 - Max working in jj.
 
 ## S9. What the stories actually demand
