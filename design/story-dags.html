@@ -29,7 +29,7 @@ pre.cmd{font-family:var(--mono);font-size:.85rem;background:var(--bg);border:1px
 <span>dotted <b>is</b> = π: mapping this umbrella commit down gives that tool commit · thick <b>is · rep</b> = π, and ρ back: this is <em>the</em> umbrella commit for that tool commit</span>
 <span>a tool in two places has occurrences R1, R2, written π<sub>R2</sub> and ρ<sub>U.R2</sub> · faded = no longer part of any line of work</span>
 </div>
-<nav><a href='#S2b'>S2b Half-landed cross-tool change</a><a href='#S10'>S10 Ada and Max bring in the same commit</a><a href='#S11'>S11 Ada rebases with plain Git</a><a href='#S11a'>S11a The same move, done right</a><a href='#S12'>S12 GitHub squash-merges an umbrella PR</a><a href='#S13'>S13 Extract crates/standards into its own repo</a><a href='#S15'>S15 Convert a submodule umbrella</a><a href='#S17'>S17 A throwaway composition for an agent</a><a href='#S5'>S5 Ratchet flow: red, bot, green</a><a href='#S5a'>S5a Reviewer asks for a test change: fix forward</a><a href='#S5b'>S5b Reviewer asks for a test change: amend</a><a href='#S5c'>S5c Amended before the bot commit was brought in</a><a href='#S3'>S3 Bob renames a function in dotsync while Ada uses it from the umbrella</a><a href='#S6'>S6 Two copies of tdd-ratchet, one CVE fix</a><a href='#S7'>S7 tb&#x27;s history is rewritten (the ledger repair)</a><a href='#S7a'>S7a Ada had tb work in flight during the rewrite</a><a href='#S18'>S18 Eve forges a rep</a><a href='#S18a'>S18a A wrong replacement record</a></nav></header>
+<nav><a href='#S2b'>S2b Half-landed cross-tool change</a><a href='#S10'>S10 Ada and Max bring in the same commit</a><a href='#S11'>S11 Ada rebases with plain Git</a><a href='#S11a'>S11a The same move, done right</a><a href='#S12'>S12 GitHub squash-merges an umbrella PR</a><a href='#S13'>S13 Extract crates/standards into its own repo</a><a href='#S15'>S15 Convert a submodule umbrella</a><a href='#S17'>S17 A throwaway composition for an agent</a><a href='#S5'>S5 Ratchet flow: red, bot, green</a><a href='#S5a'>S5a Reviewer asks for a test change: fix forward</a><a href='#S5b'>S5b Reviewer asks for a test change: amend</a><a href='#S5c'>S5c Amended before the bot commit was brought in</a><a href='#S3'>S3 Bob renames a function in dotsync while Ada uses it from the umbrella</a><a href='#S6'>S6 Two copies of tdd-ratchet, one CVE fix</a><a href='#S7'>S7 tb&#x27;s history is rewritten (the ledger repair)</a><a href='#S7a'>S7a Ada had tb work in flight during the rewrite</a><a href='#S18'>S18 Eve forges a rep</a><a href='#S18a'>S18a Max switches to the wrong commit</a><a href='#S18b'>S18b Max corrects the wrong switch</a></nav></header>
 <h2 id='S2b'>S2b · Half-landed cross-tool change</h2>
 <p>Max makes one umbrella commit U<sub>4</sub> that changes trunc and dotsync. trunc merges its part first; dotsync later.</p>
 <section>
@@ -2582,7 +2582,7 @@ flowchart LR
 <div class='step'>Step 2</div><h3>Max creates reps for the new history, built on B<sub>1</sub>&#x27;s rep</h3>
 <pre class='cmd'>max$ cx fetch tb   → ρ<sub>U</sub>(B<sub>2</sub>′) on ρ<sub>U</sub>(B<sub>1</sub>), ρ<sub>U</sub>(B<sub>3</sub>′) on ρ<sub>U</sub>(B<sub>2</sub>′)
 tb: B<sub>3</sub>′ replaces B<sub>3</sub> (tb&#x27;s main moved from B<sub>3</sub> to B<sub>3</sub>′ without containing it)</pre>
-<p>"B<sub>3</sub>′ replaces B<sub>3</sub>" comes from how tb's label moved, which is level-2 information. At level 1, CloneX takes it as an input (or Max states it).</p>
+<p>That tb's main moved from B<sub>3</sub> to B<sub>3</sub>′ without containing it is level-2 information. It is why CloneX proposes switching; at level 1, the switch is Max's decision.</p>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph U["U · umbrella"]
@@ -2624,7 +2624,7 @@ flowchart LR
 </section>
 <section>
 <div class='step'>Step 3</div><h3>Max merges it, with B<sub>3</sub> as the base for tools/tb → U<sub>2</sub></h3>
-<pre class='cmd'>max$ cx merge tb   → U<sub>2</sub>, recording that B<sub>3</sub>′ replaces B<sub>3</sub></pre>
+<pre class='cmd'>max$ cx merge tb   → U<sub>2</sub>, switching tools/tb from B<sub>3</sub> to B<sub>3</sub>′</pre>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph U["U · umbrella"]
@@ -2667,10 +2667,10 @@ flowchart LR
   class n1,n2 dim
 </pre></div>
 
-<p class='verdict'>CloneX's merge uses the replaced commit B<sub>3</sub> as the base for tools/tb. The umbrella's side is exactly B<sub>3</sub>, so tools/tb simply becomes B<sub>3</sub>′, with no conflict (Q-S7b). U<sub>2</sub> records, in the commit itself, that B<sub>3</sub>′ replaces B<sub>3</sub>, so every machine maps it down the same way: U<sub>2</sub> <em>is</em> B<sub>3</sub>′ (Q-S2e). The record names commits, not labels (D1). How it is written is parked.</p>
-<p class='hazard'>A plain <code>git merge</code> uses ρ<sub>U</sub>(B<sub>1</sub>) as the base. Both sides changed the ledger since B<sub>1</sub>, differently, so it conflicts in <code>.test-status.json</code>, a file the umbrella never touched. And mapping the merge down without the replacement record gives a new tb commit merging B<sub>3</sub> and B<sub>3</sub>′, which would put the bad history back into tb if anyone published it.</p>
+<p class='verdict'>CloneX's merge uses B<sub>3</sub>, the commit being switched away from, as the base for tools/tb. The umbrella's side is exactly B<sub>3</sub>, so tools/tb simply becomes B<sub>3</sub>′, with no conflict (Q-S7b). U<sub>2</sub> records the switch in the commit itself, so every machine maps it down the same way: U<sub>2</sub> <em>is</em> B<sub>3</sub>′ (Q-S2e). The switch names commits, not labels (D1). How it is written is parked.</p>
+<p class='hazard'>A plain <code>git merge</code> uses ρ<sub>U</sub>(B<sub>1</sub>) as the base. Both sides changed the ledger since B<sub>1</sub>, differently, so it conflicts in <code>.test-status.json</code>, a file the umbrella never touched. And mapping the merge down without the switch gives a new tb commit merging B<sub>3</sub> and B<sub>3</sub>′, which would put the bad history back into tb if anyone published it.</p>
 </section>
-<p class='verdict'><b>What this story demands:</b> a rewrite comes in as new reps beside the old ones, joined by one merge. That merge records which tool commit replaces which, and uses the replaced commit as the base, so there are no spurious conflicts and no resurrection of the old history. The umbrella's history is never rewritten.</p>
+<p class='verdict'><b>What this story demands:</b> a rewrite comes in as new reps beside the old ones, joined by one merge. That merge <em>switches</em> tools/tb from the old tip to the new one: it uses the old tip as the base, so there are no spurious conflicts, and it records the switch, so π follows the new history and the old one can't come back. The umbrella's history is never rewritten.</p>
 <h2 id='S7a'>S7a · Ada had tb work in flight during the rewrite</h2>
 <p>S7 again, but before the rewrite Ada committed U<sub>2</sub> on U<sub>1</sub>, changing <code>tools/tb/src/pane.rs</code>, and published it as a PR in tb. The PR hasn't merged when tb is rewritten.</p>
 <section>
@@ -2786,7 +2786,7 @@ flowchart LR
 <div class='step'>Step 3</div><h3>Max creates reps for the new history, built on B<sub>1</sub>&#x27;s rep</h3>
 <pre class='cmd'>max$ cx fetch tb   → ρ<sub>U</sub>(B<sub>2</sub>′) on ρ<sub>U</sub>(B<sub>1</sub>), ρ<sub>U</sub>(B<sub>3</sub>′) on ρ<sub>U</sub>(B<sub>2</sub>′)
 tb: B<sub>3</sub>′ replaces B<sub>3</sub> (tb&#x27;s main moved from B<sub>3</sub> to B<sub>3</sub>′ without containing it)</pre>
-<p>"B<sub>3</sub>′ replaces B<sub>3</sub>" comes from how tb's label moved, which is level-2 information. At level 1, CloneX takes it as an input (or Max states it).</p>
+<p>That tb's main moved from B<sub>3</sub> to B<sub>3</sub>′ without containing it is level-2 information. It is why CloneX proposes switching; at level 1, the switch is Max's decision.</p>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph U["U · umbrella"]
@@ -2833,7 +2833,7 @@ flowchart LR
 </section>
 <section>
 <div class='step'>Step 4</div><h3>Max merges it, with B<sub>3</sub> as the base for tools/tb → U<sub>3</sub></h3>
-<pre class='cmd'>max$ cx merge tb   → U<sub>3</sub>, recording that B<sub>3</sub>′ replaces B<sub>3</sub></pre>
+<pre class='cmd'>max$ cx merge tb   → U<sub>3</sub>, switching tools/tb from B<sub>3</sub> to B<sub>3</sub>′</pre>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph U["U · umbrella"]
@@ -2881,13 +2881,13 @@ flowchart LR
   class n1,n2 dim
 </pre></div>
 
-<p class='verdict'>CloneX's merge uses the replaced commit B<sub>3</sub> as the base for tools/tb. The umbrella's side is exactly B<sub>3</sub>, so tools/tb simply becomes B<sub>3</sub>′, with no conflict (Q-S7b). U<sub>3</sub> records, in the commit itself, that B<sub>3</sub>′ replaces B<sub>3</sub>, so every machine maps it down the same way: U<sub>3</sub> <em>is</em> B<sub>3</sub>′ (Q-S2e). The record names commits, not labels (D1). How it is written is parked.</p>
-<p class='hazard'>A plain <code>git merge</code> uses ρ<sub>U</sub>(B<sub>1</sub>) as the base. Both sides changed the ledger since B<sub>1</sub>, differently, so it conflicts in <code>.test-status.json</code>, a file the umbrella never touched. And mapping the merge down without the replacement record gives a new tb commit merging B<sub>3</sub> and B<sub>3</sub>′, which would put the bad history back into tb if anyone published it.</p>
+<p class='verdict'>CloneX's merge uses B<sub>3</sub>, the commit being switched away from, as the base for tools/tb. The umbrella's side is exactly B<sub>3</sub>, so tools/tb simply becomes B<sub>3</sub>′, with no conflict (Q-S7b). U<sub>3</sub> records the switch in the commit itself, so every machine maps it down the same way: U<sub>3</sub> <em>is</em> B<sub>3</sub>′ (Q-S2e). The switch names commits, not labels (D1). How it is written is parked.</p>
+<p class='hazard'>A plain <code>git merge</code> uses ρ<sub>U</sub>(B<sub>1</sub>) as the base. Both sides changed the ledger since B<sub>1</sub>, differently, so it conflicts in <code>.test-status.json</code>, a file the umbrella never touched. And mapping the merge down without the switch gives a new tb commit merging B<sub>3</sub> and B<sub>3</sub>′, which would put the bad history back into tb if anyone published it.</p>
 </section>
 <section>
 <div class='step'>Step 5</div><h3>Ada merges U<sub>3</sub> into her line; her tb change is rebuilt on B<sub>3</sub>′</h3>
 <pre class='cmd'>ada$ git merge U<sub>3</sub>   → U<sub>4</sub> (tools/tb: B<sub>3</sub> → B<sub>3</sub>′ from U<sub>3</sub>, plus U<sub>2</sub>&#x27;s pane.rs change: clean)</pre>
-<p>Here the ordinary merge is right: its base is U<sub>1</sub>, whose tools/tb is B<sub>3</sub>, so it applies U<sub>2</sub>'s change on top of B<sub>3</sub>′. Mapping U<sub>4</sub> down, with U<sub>3</sub>'s record that B<sub>3</sub>′ replaces B<sub>3</sub>, treats π<sub>B</sub>(U<sub>2</sub>) as built on a replaced commit and regenerates it on the replacement: π<sub>B</sub>(U<sub>4</sub>), parent B<sub>3</sub>′, with U<sub>2</sub>'s message and author. That is what jj does to the descendants of a rewritten commit.</p>
+<p>Here the ordinary merge is right: its base is U<sub>1</sub>, whose tools/tb is B<sub>3</sub>, so it applies U<sub>2</sub>'s change on top of B<sub>3</sub>′. Mapping U<sub>4</sub> down through U<sub>3</sub>'s switch from B<sub>3</sub> to B<sub>3</sub>′ treats π<sub>B</sub>(U<sub>2</sub>) as built on the commit switched away from, and regenerates it on the one switched to: π<sub>B</sub>(U<sub>4</sub>), parent B<sub>3</sub>′, with U<sub>2</sub>'s message and author. That is what jj does to the descendants of a rewritten commit.</p>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph U["U · umbrella"]
@@ -2943,7 +2943,7 @@ flowchart LR
 
 <p class='verdict'>Republishing updates Ada's own PR branch from π<sub>B</sub>(U<sub>2</sub>) to π<sub>B</sub>(U<sub>4</sub>), replacing only her own commit, as anyone must after an upstream force-push. The alternative mapping, merge(π<sub>B</sub>(U<sub>2</sub>), B<sub>3</sub>′), would carry B<sub>2</sub> and B<sub>3</sub> back into tb through her PR.</p>
 </section>
-<p class='verdict'><b>What this story demands:</b> (candidate rule) a tool commit built on a replaced commit is regenerated on its replacement when mapped through a merge that records the replacement. This needs its own attack before it is trusted: who may record a replacement, and what if it is wrong (the forged-claim story).</p>
+<p class='verdict'><b>What this story demands:</b> (candidate rule) a tool commit built on the commit a switch moved away from is regenerated on the commit it moved to, when mapped through that switch. S18b uses the same rule to correct a wrong switch.</p>
 <h2 id='S18'>S18 · Eve forges a rep</h2>
 <p>Eve sends the umbrella a PR. Her commit claims to be the umbrella commit for Jim's typo fix T<sub>5</sub>, but it also adds a line to trunc's help text. She sets Jim as the author and copies his message, which plain Git lets anyone do.</p>
 <section>
@@ -3024,8 +3024,8 @@ flowchart LR
 <p class='verdict'>ρ<sub>U</sub>(T<sub>5</sub>) is a function of T<sub>5</sub> and its parent's rep U<sub>2</sub>, so every machine computes the same commit, and U<sub>3</sub> is not it. A rep record can be checked, so it is never trusted. If U<sub>3</sub> were merged and published, trunc would get π<sub>T</sub>(U<sub>3</sub>): a new commit showing Jim as author with Eve's extra line. That is exactly what <code>git commit --author</code> allows today; trunc's PR review sees the diff and GitHub shows it unverified. CloneX adds no new hole.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> a rep can't lie, because it is recomputable: a brought-in rep from the tool commit and its parents' reps, and a derived one from π. Any record of "this stands for T<sub>5</sub>" is only a cache, checked on use.</p>
-<h2 id='S18a'>S18a · A wrong replacement record</h2>
-<p>The replacement record from S7 ("B<sub>3</sub>′ replaces B<sub>3</sub>") is the one claim that can't be recomputed from commits alone. Here Max gets it wrong: he thinks Bob's experiment B<sub>2b</sub> is tb's repaired history, but tb's main was never rewritten and is still at B<sub>3a.</sub></p>
+<h2 id='S18a'>S18a · Max switches to the wrong commit</h2>
+<p>In S7 the merge <em>switched</em> tools/tb from B<sub>3</sub> to B<sub>3</sub>′. A switch is a decision recorded in an umbrella commit, like its content: it says what the umbrella did, and claims nothing about tb. Here Max makes a wrong one. He thinks Bob's experiment B<sub>2b</sub> is tb's repaired history, but tb's main was never rewritten and is still at B<sub>3a.</sub></p>
 <section>
 <div class='step'>Step 0</div><h3>Start: tb&#x27;s line B<sub>1</sub> → B<sub>2a</sub> → B<sub>3a</sub>, and Bob&#x27;s experiment B<sub>2b</sub></h3>
 <div class='diagram'><pre class='mermaid'>
@@ -3058,9 +3058,9 @@ flowchart LR
 
 </section>
 <section>
-<div class='step'>Step 1</div><h3>Max brings in B<sub>2b</sub> and merges it, wrongly recording that it replaces B<sub>3a</sub></h3>
+<div class='step'>Step 1</div><h3>Max brings in B<sub>2b</sub> and merges it, switching tools/tb from B<sub>3a</sub> to B<sub>2b</sub></h3>
 <pre class='cmd'>max$ cx fetch tb   → ρ<sub>U</sub>(B<sub>2b</sub>) on ρ<sub>U</sub>(B<sub>1</sub>)
-max$ cx merge tb --replacing B<sub>3a</sub>   → U<sub>2</sub>, recording that B<sub>2b</sub> replaces B<sub>3a</sub></pre>
+max$ cx merge tb --switch-from B<sub>3a</sub>   → U<sub>2</sub>, switching tools/tb from B<sub>3a</sub> to B<sub>2b</sub></pre>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph U["U · umbrella"]
@@ -3069,7 +3069,7 @@ flowchart LR
     n6(("ρ<sub>U</sub>(B<sub>3a</sub>)"))
     n7(("U<sub>1</sub>"))
     n8(("ρ<sub>U</sub>(B<sub>2b</sub>)"))
-    n9(("U<sub>2</sub>"))
+    n9(("U<sub>2</sub><br><small>wrong switch</small>"))
   end
   subgraph B["B · tb"]
     n0(("B<sub>1</sub>"))
@@ -3101,10 +3101,10 @@ flowchart LR
 <p class='hazard'>tools/tb in U<sub>2</sub> is B<sub>2b</sub>'s tree, so B<sub>2a</sub>'s and B<sub>3a</sub>'s changes are gone from the umbrella. It is not silent: U<sub>2</sub>'s own diff shows them being removed, and a reviewer of the umbrella PR sees it.</p>
 </section>
 <section>
-<div class='step'>Step 2</div><h3>CloneX checks the record against tb itself</h3>
+<div class='step'>Step 2</div><h3>CloneX warns: the switch left tb&#x27;s main behind</h3>
 <pre class='cmd'>max$ cx status
-U<sub>2</sub> records that tb B<sub>2b</sub> replaces B<sub>3a</sub>, but B<sub>3a</sub> is still on tb and B<sub>2b</sub> is not</pre>
-<p>The record can't be recomputed, but it can be checked against tb whenever tb is reachable: if B<sub>3a</sub> is still reachable from tb's labels and B<sub>2b</sub> isn't, the record is wrong. That is a level-2 check (it reads labels).</p>
+U<sub>2</sub> switched tools/tb from B<sub>3a</sub> to B<sub>2b</sub>, but tb&#x27;s main is still B<sub>3a</sub></pre>
+<p>Nothing recorded is false: U<sub>2</sub> really did switch. CloneX can still warn, because the switch moved away from the commit tb's main is on. That check reads labels, so it is level 2.</p>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph U["U · umbrella"]
@@ -3113,7 +3113,7 @@ flowchart LR
     n6(("ρ<sub>U</sub>(B<sub>3a</sub>)"))
     n7(("U<sub>1</sub>"))
     n8(("ρ<sub>U</sub>(B<sub>2b</sub>)"))
-    n9(("U<sub>2</sub>"))
+    n9(("U<sub>2</sub><br><small>wrong switch</small>"))
   end
   subgraph B["B · tb"]
     n0(("B<sub>1</sub>"))
@@ -3142,9 +3142,9 @@ flowchart LR
 
 </section>
 <section>
-<div class='step'>Step 3</div><h3>If it isn&#x27;t caught: Ada&#x27;s tb work is built on B<sub>2b</sub></h3>
-<pre class='cmd'>ada$ git commit -am &#x27;Handle closed panes&#x27;   → U<sub>3</sub> (on U<sub>2</sub>)
-ada$ cx publish   → tb: π<sub>B</sub>(U<sub>3</sub>) sent (new PR)</pre>
+<div class='step'>Step 3</div><h3>If nobody notices: Ada&#x27;s tb work is built on B<sub>2b</sub></h3>
+<pre class='cmd'>ada$ git commit -am &#x27;Handle closed panes&#x27;   → U<sub>3a</sub> (on U<sub>2</sub>)
+ada$ cx publish   → tb: π<sub>B</sub>(U<sub>3a</sub>) sent (new PR)</pre>
 <div class='diagram'><pre class='mermaid'>
 flowchart LR
   subgraph U["U · umbrella"]
@@ -3153,15 +3153,15 @@ flowchart LR
     n6(("ρ<sub>U</sub>(B<sub>3a</sub>)"))
     n7(("U<sub>1</sub>"))
     n8(("ρ<sub>U</sub>(B<sub>2b</sub>)"))
-    n9(("U<sub>2</sub>"))
-    n10(("U<sub>3</sub><br><small>Ada</small>"))
+    n9(("U<sub>2</sub><br><small>wrong switch</small>"))
+    n10(("U<sub>3a</sub><br><small>Ada</small>"))
   end
   subgraph B["B · tb"]
     n0(("B<sub>1</sub>"))
     n1(("B<sub>2a</sub>"))
     n2(("B<sub>3a</sub>"))
     n3(("B<sub>2b</sub><br><small>Bob&#x27;s experiment</small>"))
-    n11(("π<sub>B</sub>(U<sub>3</sub>)"))
+    n11(("π<sub>B</sub>(U<sub>3a</sub>)"))
   end
   n0 --> n1
   n1 --> n2
@@ -3185,7 +3185,161 @@ flowchart LR
   style B fill:none,stroke-dasharray: 6 4
 </pre></div>
 
-<p class='verdict'>The damage stays bounded. Publishing only adds a PR branch (W6), so tb's main keeps B<sub>2a</sub> and B<sub>3a.</sub> Ada's PR is based on Bob's experiment, so it shows Bob's changes as well as hers: loud, and caught in tb's review. Merging it would be an ordinary merge, which also keeps B<sub>2a</sub> and B<sub>3a.</sub></p>
+<p class='verdict'>The damage stays bounded. Publishing only adds a PR branch (W6), so tb's main keeps B<sub>2a</sub> and B<sub>3a.</sub> Ada's PR is based on Bob's experiment, so it shows his changes as well as hers: loud, and caught in tb's review. Even merging it would be an ordinary merge, which keeps B<sub>2a</sub> and B<sub>3a.</sub></p>
 </section>
-<p class='verdict'><b>What this story demands:</b> the replacement record is the only claim CloneX can't recompute. It must be checked against the tool repo when it is made and on <code>cx status</code>, and shown wherever it changes a mapping. A wrong one can't remove anything from the tool, because publishing only adds, but it misleads the umbrella until it is corrected. How to correct it (append-only) is still to walk.</p>
+<p class='verdict'><b>What this story demands:</b> a switch is a decision, not a claim, so there is nothing to verify, only things to show: <code>cx status</code> warns when a switch leaves the tool's main behind, and the switch's own diff shows what it removed. It can't remove anything from the tool, because publishing only adds. S18b corrects it.</p>
+<h2 id='S18b'>S18b · Max corrects the wrong switch</h2>
+<p>Continuing S18a. Max sees the warning and switches back, without rewriting anything. Ada's commit on the wrong base has already been published.</p>
+<section>
+<div class='step'>Step 0</div><h3>Start: the end of S18a</h3>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph U["U · umbrella"]
+    n4(("ρ<sub>U</sub>(B<sub>1</sub>)"))
+    n5(("ρ<sub>U</sub>(B<sub>2a</sub>)"))
+    n6(("ρ<sub>U</sub>(B<sub>3a</sub>)"))
+    n7(("U<sub>1</sub>"))
+    n8(("ρ<sub>U</sub>(B<sub>2b</sub>)"))
+    n9(("U<sub>2</sub><br><small>wrong switch</small>"))
+    n10(("U<sub>3a</sub><br><small>Ada</small>"))
+  end
+  subgraph B["B · tb"]
+    n0(("B<sub>1</sub>"))
+    n1(("B<sub>2a</sub>"))
+    n2(("B<sub>3a</sub>"))
+    n3(("B<sub>2b</sub><br><small>Bob&#x27;s experiment</small>"))
+    n11(("π<sub>B</sub>(U<sub>3a</sub>)"))
+  end
+  n0 --> n1
+  n1 --> n2
+  n0 --> n3
+  n4 --> n5
+  n5 --> n6
+  n6 --> n7
+  n4 --> n8
+  n7 --> n9
+  n8 --> n9
+  n9 --> n10
+  n3 --> n11
+  n4 ===|"is · rep"| n0
+  n5 ===|"is · rep"| n1
+  n6 ===|"is · rep"| n2
+  n8 ===|"is · rep"| n3
+  n10 ===|"is · rep"| n11
+  n7 -.-|"is"| n2
+  n9 -.-|"is"| n3
+  style U fill:none,stroke-dasharray: 6 4
+  style B fill:none,stroke-dasharray: 6 4
+</pre></div>
+
+</section>
+<section>
+<div class='step'>Step 1</div><h3>Max switches tools/tb back from B<sub>2b</sub> to B<sub>3a</sub></h3>
+<pre class='cmd'>max$ cx switch tb B<sub>3a</sub>      (on U<sub>2</sub>)   → U<sub>3b</sub>, switching tools/tb from B<sub>2b</sub> to B<sub>3a</sub></pre>
+<p>U<sub>3b</sub> is an ordinary commit whose diff puts B<sub>2a</sub>'s and B<sub>3a</sub>'s changes back into tools/tb, plus a switch record. Mapping it down gives B<sub>3a</sub> itself, not a new tb commit that reverts Bob's experiment. U<sub>2</sub> stays in history, and its record is still true: it did switch to B<sub>2b.</sub></p>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph U["U · umbrella"]
+    n4(("ρ<sub>U</sub>(B<sub>1</sub>)"))
+    n5(("ρ<sub>U</sub>(B<sub>2a</sub>)"))
+    n6(("ρ<sub>U</sub>(B<sub>3a</sub>)"))
+    n7(("U<sub>1</sub>"))
+    n8(("ρ<sub>U</sub>(B<sub>2b</sub>)"))
+    n9(("U<sub>2</sub><br><small>wrong switch</small>"))
+    n10(("U<sub>3a</sub><br><small>Ada</small>"))
+    n12(("U<sub>3b</sub><br><small>switch back</small>"))
+  end
+  subgraph B["B · tb"]
+    n0(("B<sub>1</sub>"))
+    n1(("B<sub>2a</sub>"))
+    n2(("B<sub>3a</sub>"))
+    n3(("B<sub>2b</sub><br><small>Bob&#x27;s experiment</small>"))
+    n11(("π<sub>B</sub>(U<sub>3a</sub>)"))
+  end
+  n0 --> n1
+  n1 --> n2
+  n0 --> n3
+  n4 --> n5
+  n5 --> n6
+  n6 --> n7
+  n4 --> n8
+  n7 --> n9
+  n8 --> n9
+  n9 --> n10
+  n3 --> n11
+  n9 --> n12
+  n4 ===|"is · rep"| n0
+  n5 ===|"is · rep"| n1
+  n6 ===|"is · rep"| n2
+  n8 ===|"is · rep"| n3
+  n10 ===|"is · rep"| n11
+  n7 -.-|"is"| n2
+  n9 -.-|"is"| n3
+  n12 -.-|"is"| n2
+  style U fill:none,stroke-dasharray: 6 4
+  style B fill:none,stroke-dasharray: 6 4
+  classDef kept stroke:#2e9d5b,stroke-width:4px
+  class n12 kept
+</pre></div>
+<p class='legend'><span><i style='border-color:#2e9d5b'></i>U<sub>3b</sub>: not touched</span></p>
+</section>
+<section>
+<div class='step'>Step 2</div><h3>Ada merges the correction; her tb change is rebuilt on B<sub>3a</sub></h3>
+<pre class='cmd'>ada$ git merge U<sub>3b</sub>   → U<sub>4a</sub> (base U<sub>2</sub>: tools/tb goes back to B<sub>3a</sub>, plus Ada&#x27;s change: clean)</pre>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph U["U · umbrella"]
+    n4(("ρ<sub>U</sub>(B<sub>1</sub>)"))
+    n5(("ρ<sub>U</sub>(B<sub>2a</sub>)"))
+    n6(("ρ<sub>U</sub>(B<sub>3a</sub>)"))
+    n7(("U<sub>1</sub>"))
+    n8(("ρ<sub>U</sub>(B<sub>2b</sub>)"))
+    n9(("U<sub>2</sub><br><small>wrong switch</small>"))
+    n10(("U<sub>3a</sub><br><small>Ada</small>"))
+    n12(("U<sub>3b</sub><br><small>switch back</small>"))
+    n13(("U<sub>4a</sub>"))
+  end
+  subgraph B["B · tb"]
+    n0(("B<sub>1</sub>"))
+    n1(("B<sub>2a</sub>"))
+    n2(("B<sub>3a</sub>"))
+    n3(("B<sub>2b</sub><br><small>Bob&#x27;s experiment</small>"))
+    n11(("π<sub>B</sub>(U<sub>3a</sub>)"))
+    n14(("π<sub>B</sub>(U<sub>4a</sub>)"))
+  end
+  n0 --> n1
+  n1 --> n2
+  n0 --> n3
+  n4 --> n5
+  n5 --> n6
+  n6 --> n7
+  n4 --> n8
+  n7 --> n9
+  n8 --> n9
+  n9 --> n10
+  n3 --> n11
+  n9 --> n12
+  n10 --> n13
+  n12 --> n13
+  n2 --> n14
+  n4 ===|"is · rep"| n0
+  n5 ===|"is · rep"| n1
+  n6 ===|"is · rep"| n2
+  n8 ===|"is · rep"| n3
+  n10 ===|"is · rep"| n11
+  n13 ===|"is · rep"| n14
+  n7 -.-|"is"| n2
+  n9 -.-|"is"| n3
+  n12 -.-|"is"| n2
+  style U fill:none,stroke-dasharray: 6 4
+  style B fill:none,stroke-dasharray: 6 4
+  classDef copy stroke:#e8a317,stroke-width:4px,fill:#e8a31744
+  class n14 copy
+  classDef dim opacity:0.35
+  class n11 dim
+</pre></div>
+<p class='legend'><span><i style='border-color:#e8a317'></i>π<sub>B</sub>(U<sub>4a</sub>): a new copy (new SHA)</span></p>
+<p class='verdict'>The same rule as S7a: π<sub>B</sub>(U<sub>3a</sub>) was built on B<sub>2b</sub>, the commit U<sub>3b</sub> switched away from, so mapping U<sub>4a</sub> down regenerates Ada's change on B<sub>3a</sub>, with her message and author. Republishing updates her PR to π<sub>B</sub>(U<sub>4a</sub>), which no longer carries Bob's experiment.</p>
+</section>
+<p class='verdict'><b>What this story demands:</b> a wrong switch is corrected by another switch, append-only. S7's rewrite and this correction are one operation. So there are two kinds of record, and neither needs trust: reps, which are recomputed and checked (S18), and switches, which are decisions the umbrella made and shows.</p>
 </main>
