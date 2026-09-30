@@ -29,7 +29,7 @@ pre.cmd{font-family:var(--mono);font-size:.85rem;background:var(--bg);border:1px
 <span>dotted <b>is</b> = π: mapping this umbrella commit down gives that tool commit · thick <b>is · rep</b> = π, and ρ back: this is <em>the</em> umbrella commit for that tool commit</span>
 <span>a tool in two places has occurrences R1, R2, written π<sub>R2</sub> and ρ<sub>U.R2</sub> · faded = no longer part of any line of work</span>
 </div>
-<nav><a href='#S2b'>S2b Half-landed cross-tool change</a><a href='#S10'>S10 Ada and Max bring in the same commit</a><a href='#S11'>S11 Ada rebases with plain Git</a><a href='#S11a'>S11a The same move, done right</a><a href='#S12'>S12 GitHub squash-merges an umbrella PR</a><a href='#S13'>S13 Extract crates/standards into its own repo</a><a href='#S15'>S15 Convert a submodule umbrella</a><a href='#S17'>S17 A throwaway composition for an agent</a><a href='#S5'>S5 Ratchet flow: red, bot, green</a><a href='#S5a'>S5a Reviewer asks for a test change: fix forward</a><a href='#S5b'>S5b Reviewer asks for a test change: amend</a><a href='#S5c'>S5c Amended before the bot commit was brought in</a><a href='#S3'>S3 Bob renames a function in dotsync while Ada uses it from the umbrella</a><a href='#S6'>S6 Two copies of tdd-ratchet, one CVE fix</a><a href='#S7'>S7 tb&#x27;s history is rewritten (the ledger repair)</a><a href='#S7a'>S7a Ada had tb work in flight during the rewrite</a><a href='#S18'>S18 Eve forges a rep</a><a href='#S18a'>S18a Max switches to the wrong commit</a><a href='#S18b'>S18b Max corrects the wrong switch</a><a href='#S14'>S14 Max&#x27;s personal repo contains the umbrella</a></nav></header>
+<nav><a href='#S2b'>S2b Half-landed cross-tool change</a><a href='#S10'>S10 Ada and Max bring in the same commit</a><a href='#S11'>S11 Ada rebases with plain Git</a><a href='#S11a'>S11a The same move, done right</a><a href='#S12'>S12 GitHub squash-merges an umbrella PR</a><a href='#S13'>S13 Extract crates/standards into its own repo</a><a href='#S15'>S15 Convert a submodule umbrella</a><a href='#S17'>S17 A throwaway composition for an agent</a><a href='#S5'>S5 Ratchet flow: red, bot, green</a><a href='#S5a'>S5a Reviewer asks for a test change: fix forward</a><a href='#S5b'>S5b Reviewer asks for a test change: amend</a><a href='#S5c'>S5c Amended before the bot commit was brought in</a><a href='#S3'>S3 Bob renames a function in dotsync while Ada uses it from the umbrella</a><a href='#S6'>S6 Two copies of tdd-ratchet, one CVE fix</a><a href='#S7'>S7 tb&#x27;s history is rewritten (the ledger repair)</a><a href='#S7a'>S7a Ada had tb work in flight during the rewrite</a><a href='#S18'>S18 Eve forges a rep</a><a href='#S18a'>S18a Max switches to the wrong commit</a><a href='#S18b'>S18b Max corrects the wrong switch</a><a href='#S14'>S14 Max&#x27;s personal repo contains the umbrella</a><a href='#S19'>S19 Max works in jj, and a rebase conflicts</a></nav></header>
 <h2 id='S2b'>S2b · Half-landed cross-tool change</h2>
 <p>Max makes one umbrella commit U<sub>4</sub> that changes trunc and dotsync. trunc merges its part first; dotsync later.</p>
 <section>
@@ -3621,4 +3621,170 @@ flowchart LR
 <p class='verdict'>Each repository gets ordinary commits: the umbrella gets umbrella commits, as if Max had worked in it directly, and trunc gets trunc commits. Jim's fix has exactly one rep at each level, ρ<sub>U</sub>(T<sub>5</sub>) and ρ<sub>M</sub>(ρ<sub>U</sub>(T<sub>5</sub>)), and π<sub>T</sub>(π<sub>U</sub>(ρ<sub>M</sub>(ρ<sub>U</sub>(T<sub>5</sub>)))) = T<sub>5.</sub> The DAG doesn't change.</p>
 </section>
 <p class='verdict'><b>What this story demands:</b> nesting needs no new rules: π composes (trunc seen from M is π<sub>T</sub> ∘ π<sub>U</sub>), and so does ρ (ρ<sub>M</sub>(ρ<sub>U</sub>(T<sub>5</sub>))). Each level knows only its own components, and nothing has to be published to the middle level first, because reps are computed.</p>
+<h2 id='S19'>S19 · Max works in jj, and a rebase conflicts</h2>
+<p>Max uses jj in his umbrella clone (colocated with Git). He rewords line 2 of trunc's help text. Meanwhile Jim's typo fix changes the same line. The Git objects in steps 4 and 5 were checked with jj 0.44.</p>
+<section>
+<div class='step'>Step 0</div><h3>Start</h3>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+  end
+  subgraph U["U · umbrella"]
+    n1(("U<sub>2</sub>"))
+  end
+  n1 ===|"is · rep"| n0
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+</pre></div>
+
+</section>
+<section>
+<div class='step'>Step 1</div><h3>Max edits in jj&#x27;s working copy, which is itself a commit, U<sub>3</sub></h3>
+<pre class='cmd'>max$ jj new -m &#x27;Say the default unit&#x27;   (then edits tools/trunc/src/help.txt line 2)</pre>
+<p>jj snapshots the working copy into U<sub>3</sub> on every command, so U<sub>3</sub> is rewritten again and again as Max types. π<sub>T</sub>(U<sub>3</sub>) is only computed when CloneX is asked (<code>cx status</code>, <code>cx publish</code>). Nothing is published yet, so the rewrites affect nobody.</p>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+    n3(("π<sub>T</sub>(U<sub>3</sub>)"))
+  end
+  subgraph U["U · umbrella"]
+    n1(("U<sub>2</sub>"))
+    n2(("U<sub>3</sub><br><small>Max, jj</small>"))
+  end
+  n1 --> n2
+  n0 --> n3
+  n1 ===|"is · rep"| n0
+  n2 ===|"is · rep"| n3
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+</pre></div>
+
+</section>
+<section>
+<div class='step'>Step 2</div><h3>Jim&#x27;s T<sub>5</sub> lands on trunc; it fixes the same line</h3>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+    n3(("π<sub>T</sub>(U<sub>3</sub>)"))
+    n4(("T<sub>5</sub><br><small>Jim</small>"))
+  end
+  subgraph U["U · umbrella"]
+    n1(("U<sub>2</sub>"))
+    n2(("U<sub>3</sub><br><small>Max, jj</small>"))
+  end
+  n1 --> n2
+  n0 --> n3
+  n0 --> n4
+  n1 ===|"is · rep"| n0
+  n2 ===|"is · rep"| n3
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+</pre></div>
+
+</section>
+<section>
+<div class='step'>Step 3</div><h3>Max brings T<sub>5</sub> in</h3>
+<pre class='cmd'>max$ cx fetch trunc   → ρ<sub>U</sub>(T<sub>5</sub>) on U<sub>2</sub> (immutable in jj, S5b)</pre>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+    n3(("π<sub>T</sub>(U<sub>3</sub>)"))
+    n4(("T<sub>5</sub><br><small>Jim</small>"))
+  end
+  subgraph U["U · umbrella"]
+    n1(("U<sub>2</sub>"))
+    n2(("U<sub>3</sub><br><small>Max, jj</small>"))
+    n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
+  end
+  n1 --> n2
+  n0 --> n3
+  n0 --> n4
+  n1 --> n5
+  n1 ===|"is · rep"| n0
+  n2 ===|"is · rep"| n3
+  n5 ===|"is · rep"| n4
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+</pre></div>
+
+</section>
+<section>
+<div class='step'>Step 4</div><h3>Max rebases onto it; jj records the conflict in the commit U<sub>3</sub>′</h3>
+<pre class='cmd'>max$ jj rebase -s U<sub>3</sub> -d ρ<sub>U</sub>(T<sub>5</sub>)
+(jj reports an unresolved conflict in tools/trunc/src/help.txt)</pre>
+<p>jj lets a commit hold a conflict. There is no "is" line from U<sub>3</sub>′: a conflicted commit maps down to no trunc commit.</p>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+    n3(("π<sub>T</sub>(U<sub>3</sub>)"))
+    n4(("T<sub>5</sub><br><small>Jim</small>"))
+  end
+  subgraph U["U · umbrella"]
+    n1(("U<sub>2</sub>"))
+    n2(("U<sub>3</sub><br><small>Max, jj</small>"))
+    n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
+    n6(("U<sub>3</sub>′<br><small>conflicted</small>"))
+  end
+  n1 --> n2
+  n0 --> n3
+  n0 --> n4
+  n1 --> n5
+  n5 --> n6
+  n1 ===|"is · rep"| n0
+  n2 ===|"is · rep"| n3
+  n5 ===|"is · rep"| n4
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+  classDef conflict stroke:#d64545,stroke-width:4px,stroke-dasharray: 5 3
+  class n6 conflict
+  classDef dim opacity:0.35
+  class n2,n3 dim
+</pre></div>
+<p class='legend'><span><i style='border-color:#d64545'></i>U<sub>3</sub>′: has an unresolved conflict</span></p>
+<p class='hazard'>In Git, U<sub>3</sub>′'s <code>tools/trunc/src/help.txt</code> holds <em>only Jim's line</em>. jj keeps the conflict in <code>.jjconflict-base-0/</code>, <code>.jjconflict-side-0/</code>, <code>.jjconflict-side-1/</code> and <code>JJ-CONFLICT-README</code> at the umbrella's root, and the real trees in a <code>jj:trees</code> header. So a naive π<sub>T</sub> would see a clean trunc tree equal to T<sub>5</sub>'s, and Max's change would vanish without a word. π must read jj's header and refuse: <code>cx status</code> says "U<sub>3</sub>′: conflict in tools/trunc/src/help.txt; no trunc commit until it is resolved", and <code>cx publish</code> refuses it. jj itself already refuses to push it ("Won't push commit … since it has conflicts"), but a plain <code>git push</code> from the same clone would not.</p>
+</section>
+<section>
+<div class='step'>Step 5</div><h3>Max resolves the conflict; the resolved commit U<sub>3</sub>″ maps down again</h3>
+<pre class='cmd'>max$ jj new U<sub>3</sub>′   (edits help.txt to keep both changes)
+max$ jj squash   → U<sub>3</sub>″ (same change as U<sub>3</sub>)</pre>
+<div class='diagram'><pre class='mermaid'>
+flowchart LR
+  subgraph T["T · trunc"]
+    n0(("T<sub>4</sub>"))
+    n3(("π<sub>T</sub>(U<sub>3</sub>)"))
+    n4(("T<sub>5</sub><br><small>Jim</small>"))
+    n8(("π<sub>T</sub>(U<sub>3</sub>″)"))
+  end
+  subgraph U["U · umbrella"]
+    n1(("U<sub>2</sub>"))
+    n2(("U<sub>3</sub><br><small>Max, jj</small>"))
+    n5(("ρ<sub>U</sub>(T<sub>5</sub>)"))
+    n6(("U<sub>3</sub>′<br><small>conflicted</small>"))
+    n7(("U<sub>3</sub>″<br><small>resolved</small>"))
+  end
+  n1 --> n2
+  n0 --> n3
+  n0 --> n4
+  n1 --> n5
+  n5 --> n6
+  n5 --> n7
+  n4 --> n8
+  n1 ===|"is · rep"| n0
+  n2 ===|"is · rep"| n3
+  n5 ===|"is · rep"| n4
+  n7 ===|"is · rep"| n8
+  style T fill:none,stroke-dasharray: 6 4
+  style U fill:none,stroke-dasharray: 6 4
+  classDef dim opacity:0.35
+  class n2,n3,n6 dim
+</pre></div>
+
+<p class='verdict'>π<sub>T</sub>(U<sub>3</sub>″) is an ordinary trunc commit on T<sub>5</sub>, with Max's message and author, and both edits. Only now is there anything to publish.</p>
+</section>
+<p class='verdict'><b>What this story demands:</b> jj's model fits: its working copy and rewrites are just new versions of unpublished umbrella commits, and reps are immutable heads. The one new rule: <strong>a conflicted commit has no π</strong>. CloneX must read jj's conflict header rather than the plain Git tree, which shows one side as if clean, and must refuse to publish it.</p>
 </main>

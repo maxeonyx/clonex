@@ -35,6 +35,7 @@ COLOURS = {
     "copy": ("#e8a317", "a new copy (new SHA)"),
     "dropped": ("#d64545", "dropped"),
     "kept": ("#2e9d5b", "not touched"),
+    "conflict": ("#d64545", "has an unresolved conflict"),
 }
 
 SUB = re.compile(r"(?<![A-Za-z])([A-Zρπ][0-9]?)_([0-9A-Za-z.]+)")
@@ -94,7 +95,7 @@ def mermaid(story, upto):
         out.append(f"  style {repo} fill:none,stroke-dasharray: 6 4")
     for cls, names in story["steps"][upto].get("colours", {}).items():
         colour = COLOURS[cls][0]
-        dash = ",stroke-dasharray: 5 3" if cls == "dropped" else ""
+        dash = ",stroke-dasharray: 5 3" if cls in ("dropped", "conflict") else ""
         fill = f",fill:{colour}44" if cls == "copy" else ""
         out.append(f"  classDef {cls} stroke:{colour},stroke-width:4px{dash}{fill}")
         out.append(f"  class {','.join(ids[n] for n in names)} {cls}")

@@ -670,8 +670,23 @@ in two kinds:
   from M goes down level by level, and each repository gets ordinary
   commits.
 
-Still to walk:
-- Max working in jj.
+- **S19 (Max works in jj, and a rebase conflicts):** jj's working copy and
+  rewrites are just new versions of unpublished umbrella commits, and reps
+  are immutable heads (S5b), so jj fits. One new rule: **a conflicted
+  commit has no π.** jj 0.44 stores a conflicted commit so that the plain
+  Git tree holds one side (the rebase destination's) as if clean, with the
+  conflict in `.jjconflict-*` directories at the umbrella root and the real
+  trees in a `jj:trees` header. A naive π would silently drop Max's side.
+  CloneX must read the header, report the conflict, and refuse to publish.
+  jj already refuses to push such a commit; plain `git push` doesn't.
+
+Level-1 stories are all walked. Next:
+- an independent attack on the whole level-1 design (C″, switches, the
+  S7a regeneration rule, the conflict rule);
+- precise rules for the residuals: G1 in a new composition's first reps,
+  and detecting copied reps after a plain rebase or squash;
+- re-deriving the suspended constraint list from the stories;
+- then level 2 (refs), told the same way.
 
 ## S9. What the stories actually demand
 
